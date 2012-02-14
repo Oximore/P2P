@@ -8,10 +8,16 @@
 package noeud;
 
 class Fichier{
-
-
-
-
-
-
+    String nom;
+    int key;
+    int taille_piece;
+    int taille;
+    BufferMap buffer;
+    file* data;
+    
+    Fichier(){
+	RandomAccessFile f = new RandomAccessFile(NOM_FICHIER,MODE);     
+    }
+    
+    
 }
