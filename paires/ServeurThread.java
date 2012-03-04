@@ -3,6 +3,7 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.lang.Character;
+import java.lang.String;
 
 public class ServeurThread extends Thread {
 
@@ -20,30 +21,41 @@ public class ServeurThread extends Thread {
 	    InputStream in   = socket.getInputStream();  // aviable-close-read-skip
 	    OutputStream out = socket.getOutputStream(); // close-flush-write
 	
-	    boolean pasfini = true;
-	    int deja = 0;
+	    boolean fin = false;
+	    byte[] b = new byte[500];
 	    int res;
-	    while (pasfini){
-		// read(b)  where byte[] b
-		res = in.read();
+	    while (!fin){
+		res = in.read(b);
+		String string = new String(b);
 		if (res == -1){
-		    if (deja == 1)
-			pasfini = false;
+		    System.out.println("***WTF***");
+		    try{Thread.sleep(1500);}
+		    catch(InterruptedException e){}
 		}
 		else {
-		    System.out.print((char)res);
-		    deja = 1;
+		    // annalyse de b
+		    if (-1 != string.indexOf("have")){
+			String[] tab = string.split(" ");
+			System.out.println("Yes i have : "+tab[2]+", "+tab[1]);
+		    }
+			else if (-1 != string.indexOf("FINI")){
+			fin = true;
+		    }
 		}
 	    }
-
+		
 	    in.close();
 	    out.close();
-	//socket.close(); apparement pas là
+	    //socket.close(); apparement pas là
 	}     
 	catch(IOException e){
 	    System.out.println("Et bim : ioe exception dans le run : " + e);
 	    System.exit(1);
 	}  
     }
+    
+    //    private String readSentence(InputStream in){    }
+
+
 }
 

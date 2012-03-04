@@ -4,12 +4,6 @@
  *
  *  Socket client
  */
-
-//package noeud;
-
-	    //    public boolean envoieMessage(String host, int port, String sender, String receiver) {
-        //L'utilisation conjointe des méthodes read() (qui renvoie un entier) et write(byte) couvriront alors tous vos besoins. 
-
 import java.lang.InterruptedException;
 import java.net.Socket;
 import java.io.IOException;
@@ -31,9 +25,15 @@ class Client{
 	    InputStream in   = socket.getInputStream();  // aviable-close-read-skip
 	    OutputStream out = socket.getOutputStream(); // close-flush-write
 	    
-	    out.write("blablabla".getBytes());
+	    int i=0;
+	    while (i++<5) {
+		out.write("have 42 43".getBytes());
+		out.flush();
+		try{Thread.sleep(1500);}
+		catch(InterruptedException e){}
+	    }
+	    out.write("FINI".getBytes());
 	    out.flush();
-
 	    /*
 	      int i = 1;
 	      while (i++ < 10){
@@ -49,6 +49,7 @@ class Client{
 	    
 	    in.close();
 	    out.close();
+	System.out.println("Fin client");
 	} 
 	catch (IOException ioe) { 
 	    System.out.println("IO exception : " + ioe );
