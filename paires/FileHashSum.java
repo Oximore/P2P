@@ -10,6 +10,14 @@ import java.security.MessageDigest;
  * copyleft
  */
 public class FileHashSum {
+    /*
+      public  static boolean compareSha1sum(File file, String sha1sum)
+      public  static String  sha1sum(File file)
+      public  static boolean compareMd5sum(File file, String md5sum)
+      public  static String  md5sum(File file)
+      private static String  getHexString(byte[] bytes) 
+    */
+
         /**
          * compare le <code>sha1sum</code> donné avec l'empreinte du fichier local <code>file</code>.
          * @param file le fichier dont on doit calculer l'empreinte sha1

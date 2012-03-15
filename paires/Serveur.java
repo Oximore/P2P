@@ -37,8 +37,9 @@ class Serveur{
 	try{
 	    Socket s = serv.accept(); // s.close() quelque part
 	    ServeurThread st = new ServeurThread("" + s.getPort(), s);
-	    st.run(); // run() or start() ??
-	    s.close();
+	    //	    st.run(); // run() or start() ??
+	    st.start();
+	    //	    s.close();
 	    return 0;
 	}
 	catch(IOException e){ // quelles erreurs ?

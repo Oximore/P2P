@@ -46,7 +46,7 @@ public class ServeurThread extends Thread {
 		
 	    in.close();
 	    out.close();
-	    //socket.close(); apparement pas là
+	    socket.close(); //apparement pas là
 	}     
 	catch(IOException e){
 	    System.out.println("Et bim : ioe exception dans le run : " + e);
