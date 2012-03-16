@@ -1,4 +1,4 @@
-/*  Main.java
+/*  Test.java
  *  Blux
  *  14/02/12
  *

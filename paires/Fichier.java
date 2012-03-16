@@ -14,18 +14,18 @@ class Fichier{
     private String _nom;
     private String _key;
     private int _taille_piece;
-    private int _taille;
+    private long _taille;
     private boolean[] _masque;
     
     static private String _directory = "Download/";
     
-    Fichier(String nomFichier, String key, int taille, int taille_piece){
+    Fichier(String nomFichier, String key, long taille, int taille_piece){
 	_nom          = nomFichier ;
 	_key          = key ;
 	_taille       = taille ;
 	_taille_piece = taille_piece ;
 		
-	int l = taille/taille_piece +1 ; // à modif
+	int l = ((int)taille)/taille_piece +1 ; // à modif
 	_masque = new boolean[l] ;
 	for (int i=0; i<_masque.length ; i++){
 	    _masque[i] = false;
@@ -41,8 +41,8 @@ class Fichier{
 	    RandomAccessFile fileHidden = new RandomAccessFile(_directory+"."+_nom,"rw");
 	    for (int i=0; i<_masque.length ; i++){
 		if (_masque[i])
-		    fileHidden.writeChar('1');
-		else fileHidden.writeChar('0');
+		    fileHidden.write('1');
+		else fileHidden.write('0');
 	    }
 	    
 	    fileHidden.close();

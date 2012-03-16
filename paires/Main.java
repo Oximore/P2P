@@ -5,7 +5,6 @@
  *  Pour tester
  */
 
-//package noeud;
 import java.util.Scanner;
 
 public class Main{

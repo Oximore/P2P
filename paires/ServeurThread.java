@@ -1,3 +1,9 @@
+/*  ServeurThread.java
+ *  Blux
+ *  27/02/12
+ *
+ *  Gère les demandes d'un paire voisin
+ */
 import java.net.Socket;
 import java.io.OutputStream;
 import java.io.InputStream;
