@@ -33,18 +33,23 @@ class Fichier{
     }
 
     public boolean[] getMasque() { return _masque ; }
-    
-    public void setMasque(boolean[] buffer) { _masque = buffer.clone() ; }
+    public void setMasque(boolean[] buffer) { _masque = buffer.clone(); }
+    public void setTaillePiece(int taillePieces) { _taille_piece = taillePieces; }
 
     public void saveValue(){
 	try{
 	    RandomAccessFile fileHidden = new RandomAccessFile(_directory+"."+_nom,"rw");
+	    // Sauve le masque sous forme de 0 et 1
 	    for (int i=0; i<_masque.length ; i++){
 		if (_masque[i])
 		    fileHidden.write('1');
 		else fileHidden.write('0');
 	    }
+	    fileHidden.write('\n');
 	    
+	    // Sauver la taille de découpage de la pièce
+	    fileHidden.writeBytes(""+_taille_piece);
+	    	    
 	    fileHidden.close();
 	}
 	catch(IOException e){}

@@ -2,7 +2,7 @@
  *  Blux
  *  27/02/12
  *
- *  Met à jour régulièrement le Tracker
+ *  Thread 3 : Met à jour régulièrement le Tracker
  */
 import java.net.Socket;
 import java.io.OutputStream;
@@ -16,13 +16,15 @@ public class MiseAJour extends Thread {
     private String _ip;
     private int _port;
     private int _tmp;
+    private int _port_serveur;
 
-    //MiseAJour("kikoulol","127.0.0.0",55555,5)
-    public MiseAJour(String name, String ip, int port, int tmp_miseAJour){
+
+    public MiseAJour(String name, String ip, int port, int port_serveur, int tmp_miseAJour){
 	super(name) ;
 	_ip   = ip;
 	_port = port;
 	_tmp  = tmp_miseAJour;
+	_port_serveur = port_serveur;
     }
     
     public void run(){
@@ -35,8 +37,12 @@ public class MiseAJour extends Thread {
 		return ;
 	    }
 	    
-	    //InputStream in   = socket.getInputStream();  // aviable-close-read-skip
+	    InputStream in   = socket.getInputStream();  // aviable-close-read-skip
 	    OutputStream out = socket.getOutputStream(); // close-flush-write
+	    
+	    // On se déclare au tracker avec _port_serveur
+	    
+
 	    
 	    // ok pour l'infini ?
 	    while (true) {

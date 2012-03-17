@@ -77,7 +77,6 @@ public class GestionFichier{
 	}
 	
 	hash.put(key, element) ;
-    }
-    
+    }    
     
 }

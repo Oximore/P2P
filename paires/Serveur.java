@@ -2,24 +2,46 @@
  *  Blux
  *  21/02/12
  *
- *  Socket serveur
+ *  Thread 2 : Socket serveur
  */
 
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.IOException;
 import java.lang.String;
+import java.util.Hashtable;
 
-class Serveur{
+public class Serveur extends Thread {
     
-    public static void main(String[] args) {
+    private Hashtable _hash;
+    private int _connexions_max;
+    private int _tmp_refresh;
+    private String _ip_tracker;
+    private int _port_tracker;
+    
+
+
+    public Serveur(String name, Hashtable hash, String ip, int port, int tmp_refresh, int connexions_max){
+	super(name);
+	_hash = hash;
+	_connexions_max = connexions_max;
+	_tmp_refresh    = tmp_refresh;
+	_ip_tracker     = ip;  
+	_port_tracker   = port;
+    }
+
+    
+    public void run() {
 	System.out.println("Début serveur");
 	try {
-	    ServerSocket serveur = new ServerSocket(55555);
+	    // Sélectionne un port libre ? entre "???" et "???"
+	    ServerSocket serveur = new ServerSocket(); // (55555);
 	    serveur.setSoTimeout(1000);
 
-	    // Lancer Thread 3 now ?
-
+	    // Lancement du Thread 3
+	    MiseAJour maj = new MiseAJour("Thread 3", _ip_tracker, _port_tracker, serveur.getLocalPort(), _tmp_refresh);
+	    maj.start();	    
+	    
 	    while (true){
 		attendre(serveur);
 		System.out.println(".");
