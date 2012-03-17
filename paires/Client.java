@@ -52,8 +52,7 @@ class Client{
 	System.out.println("Fin client");
 	} 
 	catch (IOException ioe) { 
-	    System.out.println("IO exception : " + ioe );
-	    return ; 
+	  
 	}
 	return ;
     }

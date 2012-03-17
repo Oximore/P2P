@@ -5,7 +5,6 @@
  *  Socket serveur
  */
 
-//package noeud;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.IOException;
@@ -18,11 +17,12 @@ class Serveur{
 	try {
 	    ServerSocket serveur = new ServerSocket(55555);
 	    serveur.setSoTimeout(1000);
-	    
-	    int i = 1;
+
+	    // Lancer Thread 3 now ?
+
 	    while (true){
 		attendre(serveur);
-		System.out.println(i++);
+		System.out.println(".");
 	    }
 	}
 	catch (IOException ioe) {
@@ -36,16 +36,15 @@ class Serveur{
     public static int attendre(ServerSocket serv){
 	try{
 	    Socket s = serv.accept(); // s.close() quelque part
+	    System.out.println("trucmachin");
 	    ServeurThread st = new ServeurThread("" + s.getPort(), s);
-	    //	    st.run(); // run() or start() ??
 	    st.start();
-	    //	    s.close();
 	    return 0;
 	}
-	catch(IOException e){ // quelles erreurs ?
+	catch(IOException e){ 
+	    //System.out.println("IOE exception in attendre :" + e);
 	    return 1;
 	}
-
     }
 
 }
