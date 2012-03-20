@@ -33,6 +33,11 @@ class Fichier{
     }
 
     public boolean[] getMasque() { return _masque ; }
+    public String getKey() { return _key; }
+    public String getName() { return _nom; }
+    public long getTaille() { return _taille; }
+    public int  getTaillePiece() { return _taille_piece; }
+    
     public void setMasque(boolean[] buffer) { _masque = buffer.clone(); }
     public void setTaillePiece(int taillePieces) { _taille_piece = taillePieces; }
 

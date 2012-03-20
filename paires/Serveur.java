@@ -18,8 +18,6 @@ public class Serveur extends Thread {
     private int _tmp_refresh;
     private String _ip_tracker;
     private int _port_tracker;
-    
-
 
     public Serveur(String name, Hashtable hash, String ip, int port, int tmp_refresh, int connexions_max){
 	super(name);
@@ -39,7 +37,7 @@ public class Serveur extends Thread {
 	    serveur.setSoTimeout(1000);
 
 	    // Lancement du Thread 3
-	    MiseAJour maj = new MiseAJour("Thread 3", _ip_tracker, _port_tracker, serveur.getLocalPort(), _tmp_refresh);
+	    MiseAJour maj = new MiseAJour("Thread 3", _hash,  _ip_tracker, _port_tracker, serveur.getLocalPort(), _tmp_refresh);
 	    maj.start();	    
 	    
 	    while (true){

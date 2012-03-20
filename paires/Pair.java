@@ -35,20 +35,29 @@ public class Pair{
 	    }
 	}
 
+
 	// On dispose maintenant de la collection remplie
+	sauver(collection);
+	
+	
+	Serveur thread2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
 
-	System.out.println("Sauvegarde des fichiers cachés");    
-	Enumeration e  = collection.elements();
-	while (e.hasMoreElements())
-	    ((Fichier) e.nextElement()).saveValue();
+	System.out.println("Programme utilisateur");    
 
-
-	//	Serveur thread2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
-
+	
+	System.out.println("Fin du programme utilisateur");    
+	sauver(collection);
 	System.out.println("Fin du programme Pair");    
 
     }
 
+    
+    static private void sauver(Hashtable hash){
+	System.out.println("Sauvegarde des fichiers cachés");    
+	Enumeration e  = hash.elements();
+	while (e.hasMoreElements())
+	    ((Fichier) e.nextElement()).saveValue();
+    }
 
     static private void remplire(File fichier, Hashtable hash, int taillePieces){
 	String key = FileHashSum.sha1sum(fichier) ;
