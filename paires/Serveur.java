@@ -32,8 +32,8 @@ public class Serveur extends Thread {
     public void run() {
 	System.out.println("Début serveur");
 	try {
-	    // Sélectionne un port libre ? entre "???" et "???"
-	    ServerSocket serveur = new ServerSocket(); // (55555);
+	    // Sélectionne un port libre ? entre "60000" et "60025"
+	    ServerSocket serveur = new ServerSocket(); // (60022);
 	    serveur.setSoTimeout(1000);
 
 	    // Lancement du Thread 3
@@ -55,9 +55,10 @@ public class Serveur extends Thread {
 
     public static int attendre(ServerSocket serv){
 	try{
-	    Socket s = serv.accept(); // s.close() quelque part
-	    System.out.println("trucmachin");
-	    ServeurThread st = new ServeurThread("" + s.getPort(), s);
+	    Socket s = serv.accept();
+	    System.out.println("Demande de connexion");
+	    // Lancement du Thread 5
+	    ServeurThread st = new ServeurThread("" + s.getPort(), s, _hash);
 	    st.start();
 	    return 0;
 	}

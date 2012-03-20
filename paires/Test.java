@@ -17,31 +17,27 @@ public class Test{
     public static void main(String[] args){
 	System.out.println("Essais");
 	
-	//	try{
-	    
-	    FileHashSum test = new FileHashSum();
-	    
-	    File f1 = new File("toto.txt");
-	    File f2 = new File("tata.txt");
-	    String sum1 = FileHashSum.sha1sum(f1);
-	    String sum2 = FileHashSum.sha1sum(f2);
-	    
-	    System.out.println("1: " + sum1);
-	    System.out.println("2: " + sum2);
-	    System.out.println("3: " + FileHashSum.compareSha1sum(f1,sum1));
-	    System.out.println("4: " + FileHashSum.compareSha1sum(f1,sum2));
-	    System.out.println("5: " + FileHashSum.compareMd5sum(f1,FileHashSum.md5sum(f2)));
-		    
-	    
-	    //	} 	catch(IOException e){return;}
 
-		    
+	/*
+	  FileHashSum test = new FileHashSum();
+	  
+	  File f1 = new File("toto.txt");
+	  File f2 = new File("tata.txt");
+	  String sum1 = FileHashSum.sha1sum(f1);
+	  String sum2 = FileHashSum.sha1sum(f2);
+	  
+	  System.out.println("1: " + sum1);
+	  System.out.println("2: " + sum2);
+	  System.out.println("3: " + FileHashSum.compareSha1sum(f1,sum1));
+	  System.out.println("4: " + FileHashSum.compareSha1sum(f1,sum2));
+	  System.out.println("5: " + FileHashSum.compareMd5sum(f1,FileHashSum.md5sum(f2)));
+	*/  
+	
 	
 	//Fichier fichier = new Fichier("screu",424242,42000,42);
 	//fichier.saveValue();
-
 	/*
-	try{
+	  try{
 	    
 	    File repertoire = new File("Download");
 	    System.out.println ( repertoire.getAbsolutePath());
@@ -75,8 +71,8 @@ public class Test{
 	catch(IOException e){
 	    e.printStackTrace();
 	}	
+	*/	
 	
-	/*
 	Hashtable h = new Hashtable(30,(float)0.6);
 	
 	//	put(Object key, Object value) 
@@ -102,7 +98,7 @@ public class Test{
 	    System.out.println("two = " + n);
 	}
 	
-	*/
+	
     }
     
 }

@@ -14,70 +14,57 @@ import java.net.SocketException;
 
 
 public class ServeurThread extends Thread {
-
-    Socket socket;
+    private Socket _socket;
+    private Hashtable _hash;
     
-    public ServeurThread(String name, Socket s){
+    public ServeurThread(String name, Socket s, Hashtable hash){
 	super(name);
-	socket = s;
+	_socket = s;
     }
     
     //throws java.io.IOException{
     public void run(){
 	try{
 	    System.out.println("Et là on fait des trucs !!!");
-	    InputStream in   = socket.getInputStream();  // aviable-close-read-skip
-	    OutputStream out = socket.getOutputStream(); // close-flush-write
+	    InputStream in   = _socket.getInputStream();  // aviable-close-read-skip
+	    OutputStream out = _socket.getOutputStream(); // close-flush-write
 	
 	    boolean fin = false;
 	    byte[] b = new byte[1000];
 	    int res;
 	    while (!fin){
+		// Peut être : lire, voir si contient "have" si il contient prendre le reste ...
 		res = in.read(b);
 		String string = new String(b);
-		// Si end of strem
+		// Si end of stream
 		if (res == -1){
 		    //levé d'exception 
 		    throw new SocketException("connection interrompue"); 
 		} else {
-		    // annalyse de b
 		    
-		    if (-1 != string.indexOf("have")){
-			String[] tab = string.split(" ");
-			System.out.print("Yes i have : ");
-			for (int i=0 ; i<tab.length ; i++)
-			    System.out.print(tab[i] + ", ");
-			System.out.println();
-			
-			
-		    } else if (-1 != string.indexOf("interested")){
+		    if (-1 != string.indexOf("interested")){
 			// Protocole : "interested $key"
 			// "have $key $buffermap" (<- séquence de bit !)
 			// renvoie le buffmap correspondant si existe
 
-
-
-
+			actionInterested(string.split(" "), out);
+			
 		    } else if (-1 != string.indexOf("getpieces")){
 			// Protocole : "getpieces $key [$index1 $index2 $index3]"
 			// "data $key [$index1:$piece1 $index2:$piece2 $index3:$piece3]"
 			// renvoie les data demandée
 
+			actionGetpiece(string, out);
 
 
 
 		    } 
-		    /*
-		      else if (-1 != string.indexOf("FINI")){
-		      fin = true;
-		      }
-		    */
 		}
 	    }
 	    
 	    in.close();
 	    out.close();
-	    socket.close(); 
+	    _socket.close(); 
 	}     
 	catch(SocketException se){
 	    System.out.println("SocketExc exception dans le run : " + se);
@@ -91,5 +78,60 @@ public class ServeurThread extends Thread {
     }
     
 
+    private void actionInterested(String tab[], OutputStream out){
+	Object o = _hash.get(tab[1]);
+	
+	if (o != null){
+	    Fichier f = (Fichier)o;
+	    System.out.println("On me demande mon fichier "+tab[1]);
+	    String reponse = "have " + tab[1] + " ";
+	    int i;
+	    boolean[] masque = f.getMasque();
+	    for ( i=0 ; i<masque.length ; i++){
+		if (masque[i])
+		    reponse += "1";
+		else
+		    reponse += "0";
+	    }
+	    out.write(reponse);
+	    out.flush();
+	}
+    }	
+    
+    
+    private void actionGetpiece(String demande, OutputStream out){
+	// Passer directement le string
+	String[] tab = demande.split(" ");
+	Object o = _hash.get(tab[1]);
+	
+	if (o != null){
+	    Fichier f = (Fichier)o;
+	    System.out.println("On me demande des pièce de mon fichier "+tab[1]);
+
+	    String[] index = ((String)demande.subSequence(demande.indexOf("[")+1,demande.indexOf("]"))).split(" ");
+	    String reponse = "data " + tab[1];
+	    int i;
+	    boolean[] masque = f.getMasque();
+	
+	    //  *TODO* reprendre de là, et vérifier et compléter
+	    
+	    
+	    String reponsePartielle = ""; // Taillepiece
+	    for ( i=0 ; i<index.length ; i++){
+		// Si on a bien le i-ème index dans notre Buffermap
+		int id = Integer.parseInt(index[i]) // *TODO* vérif 
+		if (masque[id]{
+		    // on ouvre le fichier dont on extrait les données 
+		    RandomAccessFile file = new RandomAccessFile("Download/"+f.getName(), "r");
+		    file.seek(id*f.getTaillePiece());
+		    reponsePartielle = file.read() // f.getTaillePiece()
+		    
+		}
+
+	    }
+	    out.write(reponse);
+	    out.flush();
+	}
+    }
 }
 
