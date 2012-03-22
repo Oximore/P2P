@@ -1,0 +1,166 @@
+\documentclass[a4paper,11pt]{report}
+
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage[colorlinks=true]{hyperref}
+\hypersetup{urlcolor=blue,linkcolor=black,citecolor=black,colorlinks=true} 
+%%%%%%%%%%%%%%%% Lengths %%%%%%%%%%%%%%%%
+\setlength{\textwidth}{15.5cm}
+\setlength{\evensidemargin}{0.5cm}
+\setlength{\oddsidemargin}{0.5cm}
+
+%%%%%%%%%%%%%%%% Variables %%%%%%%%%%%%%%%%
+\title{Projet SGBD : Associations}
+\author{Thibaud Cheippe, Jean-Baptiste Bernard}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+
+%%%%%%%%%%%%%%%% Main part %%%%%%%%%%%%%%%%
+\chapter{Introduction}
+Le but de ce projet SGBD est de créer une base de donnée (ainsi qu'une interface graphique) afin de faciliter la gestion des associations et des événements.
+Il est aussi demandé d'implémenter un certain nombre de requêtes statistiques sur ces données. Pour ce faire, nous avons choisi d'utiliser le logiciel Microsoft Visual Studio 2010. Le projet est donc codé en C\#.Net et en Transact-SQL.
+
+\chapter{Modélisation des Données} 
+
+\section{Description du Contexte} 
+Dans notre projet, les entités importantes sont :
+\begin{itemize}
+\item Associatifs, qui regroupe toutes les informations concernant les membres d'association
+\item Associations, qui regroupe toutes les informations concernant les associations (Objectifs, frais d'inscription...) 
+\item Evénements, qui décrit l'ensemble des événements organisés
+\item News, qui permet de stocker toutes les news publiées
+\item Extérieur, où toutes les données sur les non associatifs sont conservées
+\item Financement, où l'on trouve les informations sur les différentes sources de financement.
+\end{itemize}
+Ces entités sont reliées par des associations:
+\begin{itemize}
+\item Ainsi, un associatif peut appartenir au bureau d'une association (ou en être seulement membre). 
+\item Un événement peut être organisé aussi bien par une association que par un seul membre.
+\item De même, une news peut être postée par une association (ou un membre) et être commentée
+\item On peut aussi savoir si un membre (ou une personne extérieure) participe à un événement
+\item Enfin, les financements sont reliés à leurs associations respectives
+\end{itemize}
+\section{Modèle Entité/Association} 
+Voici ci-dessous la version finale du modèle Entité/association, les deux premières versions sont situées en annexe.
+\begin{figure}[h!]
+\includegraphics[scale=0.6]{Diagramme.png} 
+\caption{Modèle Entité/Association}
+\end{figure}
+\newpage
+\section{Liste des Opérations sur la base} 
+Nous avons implémenté chacune des opérations suivantes sur toutes les entités et les associations du projet :
+\begin{itemize}
+\item Mise à jour d'une entité (en modifiant certains attributs)
+\item Sélection (et affichage) d'une entité
+\item Insertion d'une entité dans une table
+\item Suppression d'une entité
+\end{itemize}
+\chapter{Schéma Relationnel}
+
+\section{Passage au Relationnel}
+Pour faire le passage au Relationnel, on ajoute en général les clés primaires des entités comme clés secondaires dans l'association qui relit ces entités.Cependant, dans certain cas, on peut factoriser des associations : c'est le cas des associations Finance et Extérieur Participe. En effet, elles peuvent être fusionnées respectivement à Financement et Extérieur. Cette factorisation est possible car les liens possèdent une cardinalité à 1,1.
+\section{Contraintes d'intégrité, Dépendances fonctionnelles} 
+Lors de la création de la base, nous nous sommes assurés que certains éléments indispensables (comme les clés primaires) ne puissent pas être nuls.
+Nous avons aussi ajouté des contraintes sur le formatage des données pour que l'utilisateur ne renseigne pas des informations invalides (comme une chaîne de caractères trop longue par exemple).
+\section{Schéma Relationnel} 
+Voici ci-dessous la version finale du modèle Relationnel :
+\begin{itemize}
+\item Associatifs (\underline{Numéro membre},nom membre, prénom membre, Adresse mail,filière, Année promotion, login, mot de passe)
+\item Associations (\underline{Nom asso}, Objectifs,Date création asso, Frais Inscription)
+\item Événements (\underline{Nom événement}, Description événement,Frais administration, coût membre, coût extérieur, date création événement, fréquence, date début, date fin, lieu événement, Nombre places)
+\item News(\underline{Numéro news}, Titre News, Corps News, Date création News)
+
+\item Association organise(\underline{\#Nom asso,\#Nom événement})
+\item Associatif organise (\underline{\#Numéro membre, \#Nom événement}, Note Assiociatif, Commentaire)
+\item Associatif participe (\underline{\#Numéro membre,\#Nom événement}, Commentaire)
+\item Associatif Appartient(\underline{\#Numéro membre,\#Nom asso}, date inscription, A cotisé)
+\item Appartient bureau (\underline{\#Numéro membre,\#Nom asso}, Rôle)
+\item Commente (\underline{Numéro Commentaire, \#Numéro membre, \#Numéro News}, commentaire)
+\item Poste (\underline{\#Numéro membre, \#Nom asso, \#Numéro News})
+\item Extérieur Participe (\underline{Numéro Extérieur, \#Nom événement}, Nom extérieur, Prénom extérieur, Sexe extérieur, Age extérieur, Note extérieur)
+\item Financements (\underline{Numéro financement, Nom asso}, Source financement, Montant financement)
+
+\end{itemize}
+
+
+\chapter{Implantation}
+\section{Création de la Base}
+Nous avons créé le fichier de base grâce au logiciel Microsoft Visual Studio 2010. Le format de la base de données est .mdf.
+Pour se faire,nous avons écrit les commandes de création de table (grâce à la commande CREATE TABLE), en respectant les contraintes d'intégrités (cf la section associée).
+Nous avons renseigné les clés primaires et secondaires (en utilisant ALTER TABLE pour les clés secondaires).
+Les données ont en suite été insérées.
+Il fallait aussi écrire les requêtes de suppression de tables (la requête DROP TABLE) et de données afin de pouvoir les regénérer proprement.
+
+\section{Implémentation des commandes SQL}
+
+Concernant l'implémentation SQL, nous avons mis en œuvre jusqu'à 5 commandes de base pour chaque table, concernant l'insertion de données (INSERT INTO) , la suppression de données (DELETE FROM), la mise à jour de la table (UPDATE), une requête de récupération de la liste des données (SELECT), et une requête de récupération d'une ligne de la table (SELECT WHERE).
+Nous n'avons pas toujours implémenté ces 5 commandes pour des raisons de cohérence dans le sujet. Par exemple, pour les tables ne contenant que des clés secondaires, nous ne voulions pas qu'il soit possible de les modifier, mais juste d'ajouter ou de supprimer. 
+
+Les requêtes ont été implémentées sous la forme de chaînes de caractères. Pour ce qui est du paramétrage, nous avons utilisé la concaténation de chaînes de caractères. Par exemple, si nous passons une chaine nom\_asso en paramètre, nous aurons une requête comme ceci :
+\begin{verbatim}
+" [...] WHERE NOM_ASSO = '" + nom_asso + "'   [ ...]"
+\end{verbatim}
+Cette méthode est très pratique, mais peut malheureusement rendre la lecture difficile.
+
+Dans certains cas,  nous avons rajouté des commandes supplémentaires utiles quant à l'interface et le respect des contraintes d'intégrité, ce que nous évoquerons ensuite.
+
+Nous avons du dans nos requêtes utiliser un grand nombre de jointures ou de sous-requêtes, étant donné notre volonté de n'avoir aucune redondance. Par exemple, pour afficher les membres d'une association, il nous a fallu utiliser deux tables, ASSOCIATIF\_APPARTIENT et ASSOCIATIFS, la première pour obtenir les clés primaires identifiant les personnes, et la deuxième pour récupérer les informations à leur sujet.
+
+Nous avons eu affaire au cas de comparaison de dates dans une requête SQL. Or, dans nos tables, pour une raison pratique vis-à-vis de l'interface, les dates sont entrées en temps que chaînes de caractères. Nous avons alors utilisé la fonction CAST, qui permet de changer le type d'une donnée. 
+
+Pour ce qui est des requêtes de statistiques, nous avons utilisé plusieurs fonctions SQL, les trois principales étant count, avg et sum. Mais nous avons également du utiliser la fonction ISNULL, qui permet de tester si une cellule est nulle, et permet de définir une valeur de retour si c'est le cas.
+
+Enfin, pour ce qui est de la requête de classement des associations par finances, il nous a fallu agir sur 7 tables différentes, ce qui rend la lecture de la requête assez compliquée, pour un principe de calcul relativement simple.
+
+\chapter{Utilisation}
+\section{Description de l'environnement}
+L'interface fonctionne dans un environnement Windows avec le framework .NET 4.0. Il s'agit d'un exécutable qui va fonctionner par principe de fenêtres, de boutons, et d'événements. 
+Les boutons ont une légende qui indique leur action. Les événements sont implicites. Ils sont généralement reliés à la création d'un nouvel objet ou au clic sur un bouton, mais nous en avons également créés d'autres, tels que le double-clic sur une ligne d'affichage, qui provoque l'ouverture d'une nouvelle fenêtre correspondant aux données de la ligne.
+Exemples : 
+\begin{itemize}
+\item Le double-clic sur une ligne des membres d'une association ouvre la fiche du membre correspondant.
+\item Le double-clic sur une ligne  des associations auxquelles appartient une personne permet de modifier les conditions d'appartenance, comme le fait d'avoir payé ou non sa cotisation.
+\end{itemize}
+Nous aurions voulu limiter le nombre de fenêtres en mettant les informations dans des onglets, mais cela prenait malheureusement trop de temps pour rendre le projet à temps.
+
+\section{Notice D'utilisation}
+Tout d'abord, la solution est composée d'un setup et des fichiers nécessaires à celui-ci. Le setup détecte automatiquement si l'utilisateur possède les composants requis. Dans le cas contraire, il téléchargera depuis les serveurs de Microsoft les composants manquants. La base de données est comprise dans l'exécutable. Elle contient un jeu de données de test.
+
+Le menu comporte 8 boutons :
+\begin{itemize}
+\item Le premier concerne une réinitialisation de la base de données. Nous vous invitons à ne pas utiliser ce bouton immédiatement, puisque la base de données sera ensuite vierge, et il faudra rentrer un tout nouveau jeu de données pour visualiser les différentes statistiques et possibilités du logiciel.
+
+\item Les 4 suivants concernent la visualisation des 4 tables principales de la base, c'est-à-dire les associations, les associatifs, les événements, et les news. 
+
+\item Les 3 derniers permettent de visualiser les 3 différents classements demandés dans le sujet.
+\end{itemize}
+Les deux premières requêtes de statistiques sont visualisables respectivement sur la fenêtre d'une news et d'un événement. Pour cela, il faut ouvrir la liste des entités, et faire un double-clic sur la news ou l'événement que vous voulez visualiser.
+L'interface a été conçue pour être user-friendly. Chaque entrée doit être validée pour être prise en compte, chaque bouton décrit ce que son exécution renvoie. Il y a cependant quelques subtilités. En effet, par exemple, nous ne pouvons pas créer de news depuis la liste des news, comme pour les autres entités. Il faudra pour cela accéder à un associatifs, puis à la liste des news qu'il peut consulter. 
+
+Malheureusement, nous n'avons pas eu le temps de faire en sorte que l'application soit résistante aux entrées utilisateurs incorrectes. En effet, on ne peut pas insérer d'apostrophe dans les chaînes de caractères, et il n'y a pas de vérification du type de données avant sa tentative d'insertion dans la base (ex : un caractère au lieu d'un nombre). La méthode de correction de ces problème est tout à fait connue, mais n'a pas pu être implémentée à temps, et aurait rendu le code très difficilement lisible (traitement de chaque chaîne de caractères en entrée avec vérification du type et remplacement des caractères spéciaux par des expressions régulières). 
+\section{Description de l'interface}
+Le langage utilisé a été pour nous le C\#, en combinaison avec le framework .NET, ce qui a permis un certain nombre de fonctionnalités. Par exemple, l'application ne fonctionne pas en mode connecté mais en mode non connecté, ce qui n'est pas directement important pour ce projet en particulier, mais permet d'obtenir un environnement multi-utilisateurs. Vous pouvez tester ceci en lançant deux instances de l'application en même temps. 
+
+Avec ce framework, nous aurions pu simplement récupérer les tables de la base et faire ensuite tous les traitements demandés dans le sujet, mais nous avons préféré faire en sorte de ne l'utiliser qu'en tant qu'intermédiaire de visualisation et de navigation. Il va s'avérer tout de même pratique pour répondre à certaines contraintes d'intégrité, comme la taille des saisies utilisateur, ou les listes déroulantes qui permettent de ne sélectionner que les items choisis dans la base de données (ex : Un associatif ne pourra organiser que les événements que son association organise et qu'il n'organise déjà pas. Le choix de l'événement se fait par liste déroulante.)
+
+Les requêtes SQL sont toutes contenues dans le dossier Classes du projet.
+\section{Mise à Jour}
+Nous avons finalement décidé de mettre en place l'intégration des apostrophes dans la base de données. Cela se fait par au niveau du C\# en remplaçant le caractère ' par la chaîne double-quote. Nous n'avons pas fait ces vérifications dans les classes contenant du code SQL, pour des raisons de lisibilité. Pour des raisons de lisibilité également, nous vous fournissons également la version qui ne prend pas en charge les apostrophes.
+\chapter{Annexes}
+\section{Premières versions du diagramme Entité/Association}
+Voici les deux premières versions du diagramme Entité/Association :
+\begin{figure}[!h]
+\includegraphics[scale=0.5]{version1.png} 
+\caption{Version 1}
+\end{figure}
+
+\begin{figure}[!h]
+\includegraphics[scale=0.5]{version2.png} 
+\caption{Version 2}
+\end{figure}
+
+\end{document}
