@@ -4,33 +4,43 @@
 #include <string.h>
 
 #include "interface.h"
+#include "list.h"
+#include "base.h"
 
 int sock;
-sockaddr_in sin;
-struct client tab[MAX];
+struct sockaddr_in *sockaddr;
+struct client_tab *tab;
+struct list *peers;
 
 
 void server(void)
 {
   init_connection();
+  tab = client_tab_init();
   while(42)
     {
-      int sinsize = sizeof sin;
-      
-      csock = accept(sock, (struct sockaddr *)&csin, &sinsize);
-      
-      if(csock == -1)
+      int sinsize = sizeof(struct sockaddr_in);
+      struct client * c = client_tab_add(tab);
+      c->sock = accept(sock, (struct sockaddr *)c->sockaddr,(socklen_t *) &sinsize);
+      if(c->sock == -1)
 	{
 	  perror("accept()");
 	  exit(errno);
 	}
+      /*int p = pthread_create(c->t,NULL,(void *(*)(void *))&communicate, (void *)c);
+      if(p != 0)
+	{
+	  perror("pthread_create()");
+	  exit(errno);
+	  }*/
+      
     }
 }
 
 int init_connection(void)
 {
    sock = socket(AF_INET, SOCK_STREAM, 0);
-   sin = { 0 };
+   sockaddr = malloc(sizeof(struct sockaddr_in));
 
    if(sock == -1)
    {
@@ -38,17 +48,17 @@ int init_connection(void)
       exit(errno);
    }
 
-   sin.sin_addr.s_addr = htonl(INADDR_ANY);
-   sin.sin_port = htons(PORT);
-   sin.sin_family = AF_INET;
+   sockaddr->sin_addr.s_addr = htonl(INADDR_ANY);
+   sockaddr->sin_port = htons(PORT);
+   sockaddr->sin_family = AF_INET;
 
-   if(bind(sock,(sockaddr *) &sin, sizeof sin) == -1)
+   if(bind(sock,(struct sockaddr *) sockaddr, sizeof(struct sockaddr_in)) == -1)
    {
       perror("bind()");
       exit(errno);
    }
 
-   if(listen(sock, MAX_CLIENTS) == -1)
+   if(listen(sock, MAX) == -1)
    {
       perror("listen()");
       exit(errno);
@@ -85,4 +95,38 @@ void write_client(int sock, const char *buffer)
       perror("send()");
       exit(errno);
    }
+}
+
+
+struct client_tab * client_tab_init()
+{
+  struct client_tab *c = malloc(sizeof(struct client_tab));
+  int i;
+  for(i=0;i<MAX;i++)
+    {
+      c->b[i]=0;
+      c->tab[i].sockaddr=malloc(sizeof(struct sockaddr_in));
+    }
+  return c;
+}
+
+struct client * client_tab_add(struct client_tab *t)
+{
+  int i=0;
+  while(i<MAX && t->b[i]!=0)
+    i++;
+  if(i==MAX)
+    return NULL;
+  t->b[i]=1;
+  return &(t->tab[i]);
+}
+
+void client_tab_delete_client(struct client_tab *t,struct client *c)
+{
+  int i=0;
+  while(i<MAX && t->tab[i].sock != (*c).sock)
+    i++;
+  if(i==MAX)
+    return;
+  t->b[i]=0;
 }

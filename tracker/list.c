@@ -75,6 +75,7 @@ struct peer * peer_init(char * ip_address, int port)
   p->next=NULL;
   p->ip_address = ip_address;
   p->port=port;
+  p->time = 0;
   return p;
 }
 
@@ -87,3 +88,4 @@ struct peer * peer_delete(struct peer * p)
 }
 
 
+//list_appartient

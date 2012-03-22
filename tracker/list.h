@@ -9,6 +9,7 @@ struct peer
   struct peer * next;
   char * ip_address;
   int port;
+  int time;
 };
 
 struct list
