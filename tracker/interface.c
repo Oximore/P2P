@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-
+#include "communicate.h"
 #include "interface.h"
 #include "list.h"
 #include "base.h"
@@ -11,13 +11,13 @@ int sock;
 struct sockaddr_in *sockaddr;
 struct client_tab *tab;
 struct list *peers;
-
+/*
 int communicate(struct client * c)
 {
   printf("%d\n",c->sock);
   return 0;
 }
-
+*/
 void server(void)
 {
   init_connection();
