@@ -34,7 +34,7 @@ Une fois la réponse $ok$ du tracker obtenue il ferme la connexion et lance une 
 Ce thread est instancié avec une sockette ouverte avec le pair qui a effectué la demande ainsi qu'avec la table de hachage. Il lit alors la sockette et identifie les messages reçut afin d'appeler les métodes qui correspondent à la demande. La méthode \textit{actionInterested} va juste vérifier si le pair possède le fichier demandé et dans le cas affirmatif va renvoyé son \textit{buffermap} dans une réponse $have$ dans la sockette.
 
 La méthode \textit{actionGetpiece} va aussi vérifier si le pair possède le fichier. Il ouvrira ensuite ce fichier pour récupérer les parties demandées qu'il possèdera (en matchant son buffermap) avant de les envoyé dans une réponse $data$.
-Cette dernière méthode n'est pas encore complétement terminé. Il faut jouer avec les indices mais la partie à récupérer est du genre $$[taille\_pièce*indice,taille\_pièce*(indice+1)]$$.
+Cette dernière méthode n'est pas encore complétement terminé. Il faut jouer avec les indices mais la partie à récupérer est du genre $$[taille\_piece*indice,taille\_piece*(indice+1)]$$.
 
 
 \subsection{Travail restant}
