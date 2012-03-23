@@ -1,0 +1,54 @@
+Le pair est l'élément de base du système pair à pair. L'utilisateur de cette technologie stock des fichiers qu'il désire partager dans un dossier prévu à cet effet. Il lance ensuite son application (ici dans un terminal) puis il peut ensuite demander des informations sur d'autres fichiers possédés par d'autres pairs, ou bien le téléchargement de ceux ci.
+
+
+\subsection{Structure générale}
+Nous allons tout d'abord détailler la partie actuellement implémentée.
+La gestion des connexion à travèrs différentes sockettes implique notament la création une multitude threads. Nous allons détailler chacun d'entre eux.
+
+% Ces parties marchaient indépendaments
+% Pourquoi cet ordre
+% a faire : terminer tous les threads ... proprement ?
+% lecture possible par un humain
+
+
+\subsubsection*{Thread Principal}
+Le thread principal (ou \textit{main}) est celui créer au lancement du programme. Ici son rôle va être de lancer les autres threads. 
+Il va tout d'abord créer une structure de donnée, un objet de la classe \textit{FichierConfiguration}. Cet objet à son instanciation charge les données contenues dans le fichier désigné, ici \textit{configuration.txt}. 
+
+Ensuite ce thread créé une table de hachage d'objet \textit{Fichier} indexé par les clés de ces fichiers. Une table de hachage est une structure de donnée adéquate pour le cas présent. En effet nous devons déjà hacher les fichiers, nous utilisons donc juste ces clés pour représenter les fichiers. 
+
+Enfin, il lance un thread chargé de répondre au demandes des autres threads.
+
+\subsubsection*{Thread serveur du pair}
+Ce thread commence par créer une socket serveur. Le port d'écoute est pour le moment choisit par défaut. Il faudra par la suite le déclarer dans les valeures demandées (entre 60000 et 60025). 
+
+Connaissant ensuite ce port grace à la méthode \textit{getPort()} il lance le thread qui préviendra le tracker de sa présence.
+
+Il fini enfin par faire une boucle infinie qui attends les connexions entrantes. Celles ci sont selon l'usage courant demandées par les autres pairs (Le tracker ne demande jamais de connexion à un pair). Si une demande est reçue alors il créé un nouveau thread qui se chargera de répondre à cette demande, il continura ensuite d'acouter sur son port.
+
+\subsubsection*{Thread des mise à jour}
+C'est le premier appelé par le précédent. Il se charge de se connecter au serveur du tracker. Une fois ceci fait il déclare sa présence grace à un message $announce$ complété des informations contenue dans la table de hachage. 
+Une fois la réponse $ok$ du tracker obtenue il ferme la connexion et lance une boucle infinie qui toute les $n$ minutes se reconnectera au tracker et le préviendra de l'actualité de ses fichiers. 
+
+\subsubsection*{Thread de réponse à un paire}
+Ce thread est instancié avec une sockette ouverte avec le pair qui a effectué la demande ainsi qu'avec la table de hachage. Il lit alors la sockette et identifie les messages reçut afin d'appeler les métodes qui correspondent à la demande. La méthode \textit{actionInterested} va juste vérifier si le pair possède le fichier demandé et dans le cas affirmatif va renvoyé son \textit{buffermap} dans une réponse $have$ dans la sockette.
+
+La méthode \textit{actionGetpiece} va aussi vérifier si le pair possède le fichier. Il ouvrira ensuite ce fichier pour récupérer les parties demandées qu'il possèdera (en matchant son buffermap) avant de les envoyé dans une réponse $data$.
+Cette dernière méthode n'est pas encore complétement terminé. Il faut jouer avec les indices mais la partie à récupérer est du genre $$[taille\_pièce*indice,taille\_pièce*(indice+1)]$$.
+
+
+\subsection{Travail restant}
+Mise à part la dernière fonction il reste encore du travail notament sur la partie demande d'information et de téléchargement.
+
+\subsubsection*{Thread de demande utilisateur} 
+Ce thread, qui en pratique sera surement dans la continuité du \textit{main}, gérera l'interface utilisateur. Cette interface basique dans un terminal devra communiquer avec le tracker pour lui demander des information sur les fichiers disponibles. Ceci dans une boucle, dans le cas où l'utilisateur veut télécharger plusieurs fichiers.
+
+Il est vraissemblable de dire qu'une unique sockette soit nécessaire ici. 
+
+
+\subsubsection*{Gestion d'exception}
+Dans le travail actuel les exceptions levées aboutissent presque toutes à l'arret du programme. Il est nécessaire pour la robustesse de l'application de gérer un maximum de ces exceptions. Ce travail sera fait une fois le reste fini.
+
+%\subsection{Explications}
+%Pourquoi cet ordre ?
+
