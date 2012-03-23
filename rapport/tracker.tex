@@ -87,6 +87,11 @@ Ce thread de communication sert à recevoir et envoyer des messages au pair, et 
 
 \section{Communication avec le client}
 
+La fonction \textit{communicate} écoute en permanence le client et stocke les messages reçus dans un buffer. Lorsqu'on a reçu des données, on parse ce buffer et on analyse les requètes du client. On effectue les mises à jour de la base de données si necessaires, puis on renvoie un message d'information ou de confirmation au client. \\
+Si il y a une erreur (ex: le client envoie un message autre que ``announce ...'' alors qu'il n'est pas dans la liste des pairs connectés), on ferme la socket et on interromp la fonction, ce qui tue le processus. Ces fermetures peuvent aussi être faites par la fonction de time out si trop de temps s'est écoulé depuis le dernier ``update''.
 
 \section{Mise à jour de la base de données}
 
+A la réception d'un message d'''announce'', on crée un nouveau \textit{peer} s'il n'existe pas déjà (comparaison d'adresse ip). Puis, pour chaque fichier qu'il possède, on ajoute un \textit{element} à la base de données s'il n'existe pas déjà (comparaison de clés), sinon on ajoute ce pair à la liste des pairs possédant le fichier de même clé.\\
+
+Lors de la reception d'un message d'''update'', on met à jour le champ time du pair, puis on compare la liste des fichiers possédés par le pair à ceux du précédent update (ils étaient stockés sous forme d'une liste d'\textit{element} dans le champ \textit{previous\_update} du pair).On met alors à jour la base de données en ajoutant le pair comme possesseur des fichiers qu'il a mais n'avait pas la dernière fois, et en l'enlevant des fichiers qu'il n'a plus. Puis on place la liste des fichiers de l'update dans le champ \textit{previous\_update} du pair. 
