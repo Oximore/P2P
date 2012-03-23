@@ -32,7 +32,6 @@ void server(struct donnees * d)
       else
 	{
 	  c->sock = accept(d->sock, (struct sockaddr *)c->sockaddr,(socklen_t *) &sinsize);
-	  printf("coucou\n");
 	  if(c->sock == -1)
 	    {
 	      perror("accept()");
