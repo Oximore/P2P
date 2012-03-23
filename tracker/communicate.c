@@ -10,10 +10,11 @@
 //#define SEND_BUF_SIZE 1024
 #define IDLE_TIME // en secondes
 
-int communicate(struct client * client,struct client_tab* tab, struct list* peers, struct base* base)
+int communicate(struct donnees* donnees)
 {
-  ulong ip=client->sockaddr->sin_addr.s_addr;
-
+  
+  ulong ip=donnees->client->sockaddr->sin_addr.s_addr;
+  struct peer* p=trouve_peer(donnees->peer_list, ip);
   char* recv_buffer= malloc(sizeof(char)*RECV_BUF_SIZE);
     
   char* s1 = malloc(RECV_BUF_SIZE*sizeof(char));
@@ -25,22 +26,20 @@ int communicate(struct client * client,struct client_tab* tab, struct list* peer
   while(1)
     {
       
-      read_client(client->sock, recv_buffer);
-      //write_client(tab[tab_ind].sock, send_buffer)
+      read_client(donnees->client->sock, recv_buffer);
       
       switch(recv_buffer[0])
 	{
 	case'a':
 	  sscanf(recv_buffer,"%s %s %d %s [%s]",s1, s2, &port, s3, s4);
-	  if(strcmp(s1,"announce")==0 && strcmp(s2,"have")==0)
+	  if(strcmp(s1,"announce")==0 && strcmp(s2,"listen")==0 && strcmp(s3,"have")==0)
 	    {
-	      
-	      if(trouve_peer(peers, ip)==NULL)
+	      if(p==NULL)
 		{
-		  list_add(peers , ip , port);
+		  list_add(donnees->peer_list , ip , port);
 		}
 	      remplit_announce(base, s4);// A faire
-	      write_client(client->sock, "ok");
+	      write_client(donnees->client->sock, "ok");
 	    }
 	  break;
 	 
@@ -48,17 +47,17 @@ int communicate(struct client * client,struct client_tab* tab, struct list* peer
 	  sscanf(recv_buffer,"%s %s [%s] %s [%s]",s1 ,s2, s3, s4, s5);
 	  if(strcmp(s1,"update")==0 && strcmp(s2,"seed")==0 && strcmp(s4,"leech")==0)
 	    {
-	      if(trouve_peer(peers, ip)==NULL){end(client, tab); return 0;}//ferme la socket
+	      if(p==NULL){end(donnees->client, donnees->ct); return 0;}//ferme la socket
 	      else
 		{
-		  remplit_update(peers,base, s3, ip);
-		  write_client(client->sock, "ok");
+		  remplit_update(donnees->peer_list,donnees->base, s3, ip);
+		  write_client(donnees->client->sock, "ok");
 		}	    
 	    }
 	  break;
 	  
 	default:
-	  end(client, tab);
+	  end(donnees->client,donnees->ct);
 	  return 0;
 	  
 	  //case''
@@ -80,10 +79,9 @@ void end(struct client* client, struct client_tab* tab)
 void remplit_update(struct list* peers, struct base *base,char* keys, int ip)//met a jour la liste des pairs et previous_update
 {
   
-struct base* a_ajouter=base_init();
-struct base* a_stocker=base_init();
-struct peer* p=trouve_peer(peers, ip);
-
+  struct base* a_ajouter=keys_string_to_base(keys,base,peers);
+  struct base* a_stocker=keys_string_to_base(keys,base,peers);
+  
 
   if(p==NULL){
     printf("trouve_peer");
@@ -141,8 +139,6 @@ struct peer* p=trouve_peer(peers, ip);
   
 
 
-  struct peer* peer= trouve_peer(peers,ip);
-  
   elt=a_ajouter->first;
   while(elt!=NULL)
     {
@@ -160,8 +156,47 @@ struct peer* p=trouve_peer(peers, ip);
   free(a_enlever);
 }
 
+/*
 void remplit_announce(struct base* base,char* s)
 {
-return;
+return;}
+*/
 
+struct base* keys_string_to_base(char* s, struct base* base, struct list* peers)
+{
+  
+  struct base* new_base=base_init();
+  /* 
+   if(p==NULL){
+    printf("trouve_peer");
+    return;}
+  struct base* a_enlever=p->previous_update;
+  //on remplit a_ajouter
+  char* s=malloc(sizeof(char)*50);
+  int i=0;
+  int j=0;
+  while(keys[i]!='\0')
+    {
+      if(keys[i]==' ') 
+	{
+	  s[j]='\0';
+	  struct element* e=element_init(s,NULL,0,0,NULL);	  
+	  struct element* f=element_init(s,NULL,0,0,NULL);	  
+	  base_add(a_ajouter, e);
+	  base_add(a_stocker, f);
+	  j=-1;
+	}
+      else
+	{
+	  s[j]=keys[i];
+	}
+      j++;
+      i++;
+    }
+  s[j]='\0';
+  struct element* f=element_init(s,NULL,0,0,NULL);	  
+  struct element* e=element_init(s,NULL,0,0,NULL);	  
+  base_add(a_ajouter, e);
+  base_add(a_stocker, f);
+  */ 
 }
