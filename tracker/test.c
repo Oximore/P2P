@@ -26,7 +26,7 @@ int main()
       p=p->next;
     }
   list_delete(l);
-
-  server();
+  
+  server(donnees_init());
   return EXIT_SUCCESS;
 }

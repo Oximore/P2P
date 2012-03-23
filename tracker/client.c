@@ -23,7 +23,7 @@ int main()
   struct sockaddr_in myaddr;
   myaddr.sin_port = htons(PORT); /* on utilise htons pour le port */
   myaddr.sin_family = AF_INET;
-  inet_aton("89.93.26.142", &myaddr.sin_addr);
+  inet_aton("127.0.0.1", &myaddr.sin_addr);
   
   if(connect(sock,(struct sockaddr *) &myaddr, sizeof(struct sockaddr)) == -1)
     {

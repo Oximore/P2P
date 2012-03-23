@@ -26,15 +26,25 @@ struct client_tab
   int b[MAX];
 };
 
+struct donnees
+{
+  struct client_tab *ct;
+  struct client * client;
+  struct list * peer_list;
+  struct base * base;
+  int sock;
+  struct sockaddr_in * sockaddr;
+};
+
 struct client_tab * client_tab_init();
 struct client * client_tab_add(struct client_tab *);
 void client_tab_delete_client(struct client_tab *,struct client *);
-void server(void);
-int init_connection(void);
+void server(struct donnees *);
+int init_connection(struct donnees *);
 void end_connection(int sock);
 int read_client(int sock, char *buffer);
 void write_client(int sock, const char *buffer);
-
+struct donnees * donnees_init();
 
 
 
