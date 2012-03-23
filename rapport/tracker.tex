@@ -1,0 +1,52 @@
+\section{Implémentation de la base de données}
+\subsection{Fichiers}
+Nous avons créé une base de données contenant la liste des fichiers possédés par les clients actuellement connectés. \\
+Les fichiers sont représentés par une structure element. Elle contient entre autres champs un pointeur sur une chaîne de caractères \textit{key}, qui sera l'identifiant du fichier (la base pourra comporter plusiurs fichiers de même nom \textit{name} et même longueur \textit{length}, mais une clé sera unique dans la base de données). \\
+Le champ \textit{peer\_list} pointe sur un objet de type \textit{struct list}, qui est ne liste chaînée de \textit{struct peer}. La structure \textit{struct peer} étant la structure que nous avons choisie pour stocker les différents utilisateurs connectés, \textit{peer\_list} représente la liste de pairs connectés possédant ce fichier.\\ 
+La structure \textit{base}, qui représente notre base de données, est une liste chaînée d'\textit{element};\\
+ 
+\begin{verbatim}
+
+struct element
+{
+  struct element * next;
+  char * key;
+  char * name;
+  int length;
+  int p_size;
+  struct list * peer_list; 
+};
+
+struct base
+{
+  struct element * first;
+  int size;
+};
+
+\end{verbatim}
+
+\subsection{Pairs}
+  
+Chaque pair est représenté par une structure \textit{peer}. Le champ \textit{time} permet de stocker la date de réception du dernier message d'``update'' du pair. Une autre fonction parcourera tous les pairs connectés en continu, et si la valeur de ce champ dépasse une valeur de time\_out préalablement fixée, ce pair sera supprimé.\\
+
+\begin{verbatim}
+struct peer
+{
+  struct peer * next;
+  unsigned long ip_address;
+  int port;
+  int time;
+  struct base * previous_update;
+};
+
+struct list
+{
+  struct peer * first;
+  int size;
+};
+\end{verbatim}
+
+Ces deux constructions sont en fait symétriques: un élément d'une des deux listes possède un champ du type de l'autre liste, ce qui laisse la possibilité de stocker les fichiers possédés dans les pairs connectés ou les pairs possédant le fichier dans les fichiers disponibles, voire les deux en stockant directement les pointeurs.\\ 
+Par souci de simplicité nous avons décidé de stocker les pairs dans les fichiers.Toutefois le champ \textit{base} de la structure \textit{peer} nous sert quand même (cf Mise à jour).
+
+\section{Mise à jour de la base de données}
