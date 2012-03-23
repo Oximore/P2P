@@ -51,33 +51,3 @@ void base_add(struct base * b, struct element * e)
 void base_element_delete()
 {
 }
-
-int main()
-{
-  struct list * l = list_init();
-  char * s = malloc(3*sizeof(char));
-  char * t = malloc(2*sizeof(char));
-  t[0]='b';
-  t[1]='\0';
-  s[0]='a';
-  s[1]='a';
-  s[2]='\0';
-  list_add(l,t,1024);
-  list_add(l,s,1024);
-  list_add(l,t,1024);
-  struct peer * p = l->first;
-  while(p!=NULL)
-    {
-      printf("%s %d\n",p->ip_address,p->port);
-      p=p->next;
-    }
-  list_peer_delete(l,"b");
-  p=l->first;
-  while(p!=NULL)
-    {
-      printf("%s %d\n",p->ip_address,p->port);
-      p=p->next;
-    }
-  list_delete(l);
-  return EXIT_SUCCESS;
-}

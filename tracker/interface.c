@@ -12,6 +12,11 @@ struct sockaddr_in *sockaddr;
 struct client_tab *tab;
 struct list *peers;
 
+int communicate(struct client * c)
+{
+  printf("%d\n",c->sock);
+  return 0;
+}
 
 void server(void)
 {
@@ -22,17 +27,18 @@ void server(void)
       int sinsize = sizeof(struct sockaddr_in);
       struct client * c = client_tab_add(tab);
       c->sock = accept(sock, (struct sockaddr *)c->sockaddr,(socklen_t *) &sinsize);
+      printf("coucou");
       if(c->sock == -1)
 	{
 	  perror("accept()");
 	  exit(errno);
 	}
-      /*int p = pthread_create(c->t,NULL,(void *(*)(void *))&communicate, (void *)c);
+      int p = pthread_create(c->t,NULL,(void *(*)(void *))&communicate, (void *)c);
       if(p != 0)
 	{
 	  perror("pthread_create()");
 	  exit(errno);
-	  }*/
+	}
       
     }
 }
@@ -48,7 +54,7 @@ int init_connection(void)
       exit(errno);
    }
 
-   sockaddr->sin_addr.s_addr = htonl(INADDR_ANY);
+   sockaddr->sin_addr.s_addr = INADDR_ANY;//htonl(INADDR_ANY);
    sockaddr->sin_port = htons(PORT);
    sockaddr->sin_family = AF_INET;
 
