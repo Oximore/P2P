@@ -76,13 +76,13 @@ struct client_tab
 };
 \end{verbatim}
 On utilise un tableau de longueur prédéfinie ainsi qu'un tableau de booléens de même taille. Ce tableau de booléens nous informe si les clients sont actifs ou déconnectés.
-Nous avons choisi d'utiliser des tableaux car ils permettent de facilement limiter le nombre de connections au tracker ( pour qu'il ne soit pas surchargé )
+Nous avons choisi d'utiliser des tableaux car ils permettent de facilement limiter le nombre de connections au tracker ( pour qu'il ne soit pas surchargé ). Il est important de noter qu'un pair peut ouvrir plusieurs sockets à la suite (et donc créer plusieur structures client). Il peut par exemple ouvrir une première socket, envoyer un message, fermer la connection, puis en ouvrir une autre... Ou encore ouvrir deux sockets en parallèle et envoyer des messages sur les deux. Ce type de comportement est géré et ne pose pas de problèmes lors de la communication avec ce pair.
 
 \subsection{Thread d'écoute}
 La socket d'écoute, créée sur le premier thread, sert à attendre les connections de nouveaux pairs (il est en attente bloquante). Dès qu'un pair demande une connection, ce premier thread crée une nouvelle socket et un nouveau thread spécifique à ce pair.
 Le nouveau thread est lancé avec la fonction communicate.
-\subsection{Threads de communication avec les pairs}
-Ce thread de communication sert à recevoir et envoyer des messages au pair, et ce, au moyen de la fonction communicate. Cette fonction sera décrite ci-dessous.
+\subsection{Threads de communication avec les clients}
+Ce thread de communication sert à recevoir et envoyer des messages au client, et ce, au moyen de la fonction communicate. Cette fonction sera décrite ci-dessous.
 
 
 \section{Communication avec le client}
