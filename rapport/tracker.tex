@@ -1,0 +1,32 @@
+\section{Les sockets}
+
+Pour communiquer avec les pairs, le tracker doit créer des sockets. On crée aussi des threads associés à ces sockets.
+\subsection{Gestion des threads et des sockets}
+Pour stocker les threads et les sockets, on utilise une structure client et une structure client\_tab.
+
+La structure client contient donc le file descriptor et la structure de la socket, ainsi que le thread associé :
+\begin{verbatim}
+struct client
+{
+  int sock;
+  struct sockaddr_in *sockaddr;
+  pthread_t *t; 
+};
+\end{verbatim}
+On organise ensuite ces structures dans client\_tab :
+\begin{verbatim}
+
+struct client_tab
+{
+  struct client tab[MAX];
+  int b[MAX];
+};
+\end{verbatim}
+On utilise un tableau de longueur prédéfinie ainsi qu'un tableau de booléens de même taille. Ce tableau de booléens nous informe si les clients sont actifs ou déconnectés.
+Nous avons choisi d'utiliser des tableaux car ils permettent de facilement limiter le nombre de connections au tracker ( pour qu'il ne soit pas surchargé )
+
+\subsection{Thread d'écoute}
+La socket d'écoute, créée sur le premier thread, sert à attendre les connections de nouveaux pairs (il est en attente bloquante). Dès qu'un pair demande une connection, ce premier thread crée une nouvelle socket et un nouveau thread spécifique à ce pair.
+Le nouveau thread est lancé avec la fonction communicate.
+\subsection{Threads de communication avec les pairs}
+Ce thread de communication sert à recevoir et envoyer des messages au pair, et ce, au moyen de la fonction communicate. Cette fonction sera décrite ci-dessous.
