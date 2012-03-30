@@ -22,54 +22,64 @@ int communicate(struct donnees* donnees)
   char* s3 = malloc(RECV_BUF_SIZE*sizeof(char));
   char* s4 = malloc(RECV_BUF_SIZE*sizeof(char));
   char* s5 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char* s6 = malloc(RECV_BUF_SIZE*sizeof(char));
   int port;
+  int read;
   while(1)
     {
       
-<<<<<<< HEAD
-      read_client(client->sock, recv_buffer);
+      
+      //read_client(client->sock, recv_buffer);
       //write_client(tab[tab_ind].sock, send_buffer)
       // tester si on a reçu avant de parser encore !!!!!!!!
-=======
-      read_client(donnees->client->sock, recv_buffer);
       
->>>>>>> e52d45640eb4cc6db6cdd264b34f4487b1719ec4
-      switch(recv_buffer[0])
+      read=read_client(donnees->client->sock, recv_buffer);
+      if(read > 0)
 	{
-	case'a':
-	  sscanf(recv_buffer,"%s %s %d %s [%s]",s1, s2, &port, s3, s4);
-	  if(strcmp(s1,"announce")==0 && strcmp(s2,"listen")==0 && strcmp(s3,"have")==0)
+	  
+	  switch(recv_buffer[0])
 	    {
-	      if(p==NULL)
-		{
-		  list_add(donnees->peer_list , ip , port);
-		}
-	      remplit_announce(base, s4);// A faire
-	      write_client(donnees->client->sock, "ok");
-	    }
-	  break;
-	 
-	case'u':
-	  sscanf(recv_buffer,"%s %s [%s] %s [%s]",s1 ,s2, s3, s4, s5);
-	  if(strcmp(s1,"update")==0 && strcmp(s2,"seed")==0 && strcmp(s4,"leech")==0)
-	    {
-	      if(p==NULL){end(donnees->client, donnees->ct); return 0;}//ferme la socket
+	    case'a':
+	      if(recv_buffer[read-1] != ']') printf("le recv a merdé");//gérer les messages en plusieurs paquets
 	      else
 		{
-		  remplit_update(donnees->peer_list,donnees->base, s3, ip);
-		  write_client(donnees->client->sock, "ok");
-		}	    
+		  sscanf(recv_buffer,"%s %s %d %s [%s] %s [%s]",s1, s2, &port, s3, s4, s5, s6);
+		  if(strcmp(s1,"announce")==0 && strcmp(s2,"listen")==0 && strcmp(s3,"seed")==0 && strcmp(s5,"leech")==0
+		    {
+		      if(p == NULL)
+			{
+			  list_add(donnees->peer_list , ip , port);
+			  p=trouve_peer(donnees->peer_list, ip);
+			}
+		      char* res=fusion_keys_string(s4, s6);
+		      //remplit_announce(donnees->base, res);// A faire
+		      //free(res);
+		      write_client(donnees->client->sock, "ok");
+		    }
+		}
+	      break;
+	      
+	    case'u':
+	      sscanf(recv_buffer,"%s %s [%s] %s [%s]",s1 ,s2, s3, s4, s5);
+	      if(strcmp(s1,"update")==0 && strcmp(s2,"seed")==0 && strcmp(s4,"leech")==0)
+		{
+		  if(p==NULL){end(donnees->client, donnees->ct); return 0;}//ferme la socket
+		  else
+		    {
+		      remplit_update(donnees->peer_list,donnees->base, s3, ip);
+		      write_client(donnees->client->sock, "ok");
+		    }	    
+		}
+	      break;
+	      
+	    default:
+	      end(donnees->client,donnees->ct);
+	      return 0;
+	      
+	      //case''
 	    }
-	  break;
 	  
-	default:
-	  end(donnees->client,donnees->ct);
-	  return 0;
-	  
-	  //case''
 	}
-      
-  
       
     }
   return EXIT_SUCCESS;
@@ -168,17 +178,30 @@ void remplit_announce(struct base* base,char* s)
 return;}
 */
 
+
+char* fusion_keys_string(char* seed, char* leech)
+{
+  int seed_l=strlen(seed);
+  int leech_l=strlen(leech);
+  char* res= malloc(sizeof(char)*(seed_l+leech_l+1));
+  int i;
+  for(i=0;i<seed_l;i++)
+    {
+      res[i]=seed[i];
+    } 
+  for(i=0;i<leech_l;i++)
+    {
+      res[i+seed_l]=leech[i];
+    }
+ res[seed_l+leech_l]='\O';
+ return res;
+}
+
 struct base* keys_string_to_base(char* s, struct base* base, struct list* peers)
 {
   
   struct base* new_base=base_init();
-  /* 
-   if(p==NULL){
-    printf("trouve_peer");
-    return;}
-  struct base* a_enlever=p->previous_update;
-  //on remplit a_ajouter
-  char* s=malloc(sizeof(char)*50);
+  char* s=malloc(sizeof(char)*50);//taille de cle<50 ???
   int i=0;
   int j=0;
   while(keys[i]!='\0')
@@ -187,9 +210,7 @@ struct base* keys_string_to_base(char* s, struct base* base, struct list* peers)
 	{
 	  s[j]='\0';
 	  struct element* e=element_init(s,NULL,0,0,NULL);	  
-	  struct element* f=element_init(s,NULL,0,0,NULL);	  
-	  base_add(a_ajouter, e);
-	  base_add(a_stocker, f);
+	  base_add(new_base, e);
 	  j=-1;
 	}
       else
@@ -200,9 +221,7 @@ struct base* keys_string_to_base(char* s, struct base* base, struct list* peers)
       i++;
     }
   s[j]='\0';
-  struct element* f=element_init(s,NULL,0,0,NULL);	  
   struct element* e=element_init(s,NULL,0,0,NULL);	  
   base_add(a_ajouter, e);
-  base_add(a_stocker, f);
-  */ 
+  return new_base;  
 }
