@@ -27,7 +27,7 @@ int communicate(struct client * client,struct client_tab* tab, struct list* peer
       
       read_client(client->sock, recv_buffer);
       //write_client(tab[tab_ind].sock, send_buffer)
-      
+      // tester si on a reçu avant de parser encore !!!!!!!!
       switch(recv_buffer[0])
 	{
 	case'a':
