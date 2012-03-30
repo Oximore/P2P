@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.lang.Character;
 import java.lang.String;
 import java.net.SocketException;
+import java.util.Hashtable;
+import java.io.RandomAccessFile;
 
 
 public class ServeurThread extends Thread {
@@ -78,7 +80,7 @@ public class ServeurThread extends Thread {
     }
     
 
-    private void actionInterested(String tab[], OutputStream out){
+    private void actionInterested (String tab[], OutputStream out) throws IOException {
 	Object o = _hash.get(tab[1]);
 	
 	if (o != null){
@@ -93,13 +95,13 @@ public class ServeurThread extends Thread {
 		else
 		    reponse += "0";
 	    }
-	    out.write(reponse);
+	    out.write(reponse.getBytes());
 	    out.flush();
 	}
     }	
     
     
-    private void actionGetpiece(String demande, OutputStream out){
+    private void actionGetpiece (String demande, OutputStream out) throws IOException {
 	// Passer directement le string
 	String[] tab = demande.split(" ");
 	Object o = _hash.get(tab[1]);
@@ -109,27 +111,30 @@ public class ServeurThread extends Thread {
 	    System.out.println("On me demande des pièce de mon fichier "+tab[1]);
 
 	    String[] index = ((String)demande.subSequence(demande.indexOf("[")+1,demande.indexOf("]"))).split(" ");
-	    String reponse = "data " + tab[1];
+	    String reponse = "data " + tab[1] + "[";
 	    int i;
 	    boolean[] masque = f.getMasque();
 	
-	    //  *TODO* reprendre de là, et vérifier et compléter
-	    
-	    
-	    String reponsePartielle = ""; // Taillepiece
+
+	    String reponsePartielle = "";
+	    int taille_piece = f.getTaillePiece();
+	    byte lecteur[] = new byte[taille_piece];
+	    int retour;
 	    for ( i=0 ; i<index.length ; i++){
 		// Si on a bien le i-ème index dans notre Buffermap
-		int id = Integer.parseInt(index[i]) // *TODO* vérif 
-		if (masque[id]{
+		int id = Integer.parseInt(index[i]); // *TODO* vérif 
+		if (masque[id]){
 		    // on ouvre le fichier dont on extrait les données 
 		    RandomAccessFile file = new RandomAccessFile("Download/"+f.getName(), "r");
-		    file.seek(id*f.getTaillePiece());
-		    reponsePartielle = file.read() // f.getTaillePiece()
-		    
+		    file.seek(id*taille_piece);
+		    retour = file.read(lecteur);
 		}
-
+		reponsePartielle +=  id + ":" + lecteur + " "; 
+		
 	    }
-	    out.write(reponse);
+	    
+	    reponse += reponsePartielle.trim() + "]";
+	    out.write(reponse.getBytes());
 	    out.flush();
 	}
     }

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.lang.String;
 import java.util.Hashtable;
 
+
 public class Serveur extends Thread {
     
     private Hashtable _hash;
@@ -33,16 +34,20 @@ public class Serveur extends Thread {
 	System.out.println("Début serveur");
 	try {
 	    // Sélectionne un port libre ? entre "60000" et "60025"
-	    ServerSocket serveur = new ServerSocket(); // (60022);
+	    ServerSocket serveur = new ServerSocket(0); // (60022);
 	    serveur.setSoTimeout(1000);
+
+
+	    System.out.println("Mon port d'écoute est : " + serveur.getLocalPort());
+
 
 	    // Lancement du Thread 3
 	    MiseAJour maj = new MiseAJour("Thread 3", _hash,  _ip_tracker, _port_tracker, serveur.getLocalPort(), _tmp_refresh);
 	    maj.start();	    
-	    
+
 	    while (true){
-		attendre(serveur);
 		System.out.println(".");
+		attendre(serveur);
 	    }
 	}
 	catch (IOException ioe) {
@@ -53,7 +58,7 @@ public class Serveur extends Thread {
 
 
 
-    public static int attendre(ServerSocket serv){
+    public int attendre(ServerSocket serv){
 	try{
 	    Socket s = serv.accept();
 	    System.out.println("Demande de connexion");

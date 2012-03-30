@@ -22,7 +22,7 @@ class FichierConfiguration{
 
     FichierConfiguration(String fileName){
 	try {
-	    RandomAccessFile file = new RandomAccessFile("fichier.txt","r");
+	    RandomAccessFile file = new RandomAccessFile(fileName,"r");
 	    
 	    _ip           = recupererValeure(file,"IP : ");
 	    _port         = recupererValeureInt(file,"Port : ");

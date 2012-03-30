@@ -40,6 +40,17 @@ class Fichier{
     
     public void setMasque(boolean[] buffer) { _masque = buffer.clone(); }
     public void setTaillePiece(int taillePieces) { _taille_piece = taillePieces; }
+    
+    public boolean isIncomplet() { return (!this.isComplet()); }
+    public boolean isComplet(){
+	for (int i=0; i<_masque.length ; i++){
+	    if (!_masque[i])
+		return false; 
+	}
+	return true;
+    }
+    
+    
 
     public void saveValue(){
 	try{
