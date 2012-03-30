@@ -11,66 +11,72 @@ int sock;
 struct sockaddr_in *sockaddr;
 struct client_tab *tab;
 struct list *peers;
-/*
-int communicate(struct client * c)
+
+int com(struct donnees * d)
 {
-  printf("%d\n",c->sock);
+  printf("%d\n",d->client->sock);
+  while(42)
+    {}
   return 0;
 }
-*/
-void server(void)
+
+void server(struct donnees * d)
 {
-  init_connection();
-  tab = client_tab_init();
+  init_connection(d);
   while(42)
     {
       int sinsize = sizeof(struct sockaddr_in);
-      struct client * c = client_tab_add(tab);
-      c->sock = accept(sock, (struct sockaddr *)c->sockaddr,(socklen_t *) &sinsize);
-      printf("coucou");
-      if(c->sock == -1)
+      struct client * c = client_tab_add(d->ct);
+      if(c==NULL)
+	printf("Tableau plein\n");
+      else
 	{
-	  perror("accept()");
-	  exit(errno);
+	  c->sock = accept(d->sock, (struct sockaddr *)c->sockaddr,(socklen_t *) &sinsize);
+	  if(c->sock == -1)
+	    {
+	      perror("accept()");
+	      exit(errno);
+	    }
+	  d->client = c;
+	  int p = pthread_create(c->t,NULL,(void *(*)(void *))&com, (void *)d);
+	  if(p != 0)
+	    {
+	      perror("pthread_create()");
+	      exit(errno);
+	    }
+	  
 	}
-      int p = pthread_create(c->t,NULL,(void *(*)(void *))&communicate, (void *)c);
-      if(p != 0)
-	{
-	  perror("pthread_create()");
-	  exit(errno);
-	}
-      
     }
 }
 
-int init_connection(void)
+int init_connection(struct donnees * d)
 {
-   sock = socket(AF_INET, SOCK_STREAM, 0);
-   sockaddr = malloc(sizeof(struct sockaddr_in));
+   d->sock = socket(AF_INET, SOCK_STREAM, 0);
+   d->sockaddr = malloc(sizeof(struct sockaddr_in));
 
-   if(sock == -1)
+   if(d->sock == -1)
    {
       perror("socket()");
       exit(errno);
    }
 
-   sockaddr->sin_addr.s_addr = INADDR_ANY;//htonl(INADDR_ANY);
-   sockaddr->sin_port = htons(PORT);
-   sockaddr->sin_family = AF_INET;
+   d->sockaddr->sin_addr.s_addr = htonl(INADDR_ANY);
+   d->sockaddr->sin_port = htons(PORT);
+   d->sockaddr->sin_family = AF_INET;
 
-   if(bind(sock,(struct sockaddr *) sockaddr, sizeof(struct sockaddr_in)) == -1)
+   if(bind(d->sock,(struct sockaddr *) d->sockaddr, sizeof(struct sockaddr_in)) == -1)
    {
       perror("bind()");
       exit(errno);
    }
 
-   if(listen(sock, MAX) == -1)
+   if(listen(d->sock, MAX) == -1)
    {
       perror("listen()");
       exit(errno);
    }
 
-   return sock;
+   return d->sock;
 }
 
 void end_connection(int sock)
@@ -112,6 +118,7 @@ struct client_tab * client_tab_init()
     {
       c->b[i]=0;
       c->tab[i].sockaddr=malloc(sizeof(struct sockaddr_in));
+      c->tab[i].t=malloc(sizeof(pthread_t));
     }
   return c;
 }
@@ -135,4 +142,17 @@ void client_tab_delete_client(struct client_tab *t,struct client *c)
   if(i==MAX)
     return;
   t->b[i]=0;
+}
+
+
+struct donnees * donnees_init()
+{
+  struct donnees * d = malloc(sizeof(struct donnees));
+  d->ct = client_tab_init();
+  d->client = NULL;
+  d->peer_list = list_init();
+  d->base = base_init();
+  d->sock=0;
+  d->sockaddr=NULL;
+  return d;
 }
