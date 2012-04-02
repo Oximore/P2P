@@ -40,8 +40,13 @@ public class ServeurEssaisRepete extends Thread {
 		if (res == -1){
 		    //levé d'exception 
 		    throw new SocketException("connection interrompue"); 
-		} else 
-		    System.out.println( string );
+		} else { 
+		    System.out.println("<< " + string );
+		    out.write(("list [fichier.data 99999 16 keykeykeykeykey fichier2 88888 8 yekyekyekyekyek]").getBytes());
+		    out.flush();
+		    System.out.println(">> " +  "list [fichier.data 99999 16 keykeykeykeykey fichier2 88888 8 yekyekyekyekyek]");
+
+		}
 	    }
 	    
 	    in.close();

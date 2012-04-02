@@ -11,7 +11,7 @@ import java.io.OutputStream;
 import java.io.InputStream;
 
 
-class Client{
+class Client {
     public static void main(String[] args) {
 	Socket socket;
 	System.out.println("Début client");

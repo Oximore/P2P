@@ -13,7 +13,7 @@ public class InfoPair{
     private int _taille;
     private int _taillePiece;
     
-    InfoPair(String info){
+    public InfoPair(String info){
 	String tab[] = info.split(" ");
 	_nom = tab[0];
 	_taille = Integer.parseInt(tab[1]);
@@ -25,4 +25,6 @@ public class InfoPair{
     public String getKey() { return _key;}
     public int getTaille() { return _taille;}
     public int getTaillePiece(){ return _taillePiece;}
+    
+    public String toString() { return _nom+" "+_key+" "+_taille+" "+_taillePiece; }
 }

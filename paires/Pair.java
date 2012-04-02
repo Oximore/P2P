@@ -11,6 +11,10 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Scanner;
 import java.net.SocketException;
+import java.net.Socket;
+import java.io.OutputStream;
+import java.io.InputStream;
+
 
 public class Pair{
     
@@ -32,7 +36,7 @@ public class Pair{
 	Hashtable collection = new Hashtable(2*list.length, (float)0.75);
 	
 	for ( int i = 0; i < list.length ; i++) {
-	    // Si ce n'est pas un fichier caché
+	    // si ce n'est pas un fichier caché
 	    if ( list[i].exists() & list[i].getName().indexOf(".") > 0 ) {
 		remplire(list[i], collection, fichierConf.getTaille());
 	    }
@@ -43,32 +47,32 @@ public class Pair{
 	sauver(collection);
 	threadUtilisateur(collection,fichierConf);	
 	/*
-	Serveur thread2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
-	thread2.start();
+	  Serveur thread2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
+	  thread2.start();
 	
-	System.out.println("Programme utilisateur");    
-	try{Thread.sleep(30000);}
-	catch(InterruptedException ite){}		
+	  System.out.println("Programme utilisateur");    
+	  try{Thread.sleep(30000);}
+	  catch(InterruptedException ite){}		
 	
-	threadUtilisateur(collection,fichierConf);
+	  threadUtilisateur(collection,fichierConf);
 
-	System.out.println("Fin du programme utilisateur");    
-	sauver(collection);*/
+	  System.out.println("Fin du programme utilisateur");    
+	  sauver(collection);*/
 	System.out.println("Fin du programme Pair");    
 
     }
 
     static void threadUtilisateur(Hashtable hash, FichierConfiguration fichierConf){
 	try {
-	    Socket socket = new Socket(fichierConf.getIp, fichierConf.getPort);
+	    Socket socket = new Socket(fichierConf.getIp(), fichierConf.getPort());
 	    if (socket == null){
 	    	System.out.println("Serveur not Found in MiseAJour");
 	    	return ;
 	    }
 	    System.out.println("Bienvenue !");
 	    
-	    // InputStream in   = socket.getInputStream();  // aviable-close-read-skip
-	    //OutputStream out = socket.getOutputStream(); // close-flush-write
+	    InputStream in   = socket.getInputStream();  // aviable-close-read-skip
+	    OutputStream out = socket.getOutputStream(); // close-flush-write
 	    
 	    String str;
 	    int ret = 0, res;
@@ -82,16 +86,18 @@ public class Pair{
 		if (ret == 1){
 		    System.out.println("tapez le nom du fichier recherché :");
 		    str = scan.next();
-		    System.out.println(("look ["
-					+ "filename=\"" + str + "\""
-					+"]"));//.getBytes());    
+		    out.write(("look ["
+			       + "filename=\"" + str + "\""
+			       +"]").getBytes());
+		    out.flush();
 		}
 		else if (ret == 2){
 		    System.out.println("tapez la clé du chichier recherché :");
 		    str = scan.next();
-		    System.out.println(("look ["
-					+ "key=\"" + str + "\""
-					+"]"));//.getBytes());
+		    out.write(("look ["
+			       + "key=\"" + str + "\""
+			       +"]").getBytes());
+		    out.flush();
 		}
 		
 		res = in.read(b);
@@ -101,29 +107,35 @@ public class Pair{
 		    //		    throw new SocketException("connection interrompue"); 
 		} else {
 		    if (-1 != string.indexOf("list")){
+			System.out.println("<< " + string);
+			
+			Collecte co = new Collecte(string);
+			InfoPair tab[] = co.getTab();
+			
+			for (int i=0 ; i<tab.length ; i++){
+			    System.out.println("!!! :" + tab[i].toString());
+			}
+			System.out.flush();
 			
 		    }
-		
 		}			
-		
-		
 	    }
 	    
-	    // out.close();
-	    // in.close();
-	    // socket.close();
-	// } catch (IOException ioe) {
-	//     System.out.println("IOE exception in Pair : "+ioe);
-	//     return ;
-	// }
-	System.out.println("Bye bye !");
+	    out.close();
+	    in.close();
+	    socket.close();
+	    } catch (IOException ioe) {
+	        System.out.println("IOE exception in Pair : "+ioe);
+	        return ;
+	    }
+	    System.out.println("Bye bye !");
     }
     
-
-
-
-
-
+    
+    
+    
+    
+    
     
     static  void sauver(Hashtable hash){
 	System.out.println("Sauvegarde des fichiers cachés");    
@@ -160,6 +172,7 @@ public class Pair{
 		element.setMasque(masque);
 
 		String strTaillePiece = raf_fichierCache.readLine() ;
+		System.out.println( strTaillePiece);
 		element.setTaillePiece(Integer.parseInt(strTaillePiece));
 		
 		raf_fichierCache.close();

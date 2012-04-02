@@ -1,8 +1,8 @@
-/*  Serveur.java
- *  Blux
- *  21/02/12
+/* Serveur.java
+ * Blux
+ * 21/02/12
  *
- *  Thread 2 : Socket serveur
+ * Thread 2 : Socket serveur
  */
 
 import java.net.Socket;
@@ -24,9 +24,9 @@ public class Serveur extends Thread {
 	super(name);
 	_hash = hash;
 	_connexions_max = connexions_max;
-	_tmp_refresh    = tmp_refresh;
-	_ip_tracker     = ip;  
-	_port_tracker   = port;
+	_tmp_refresh = tmp_refresh;
+	_ip_tracker = ip;
+	_port_tracker = port;
     }
 
     
@@ -42,8 +42,8 @@ public class Serveur extends Thread {
 
 
 	    // Lancement du Thread 3
-	    MiseAJour maj = new MiseAJour("Thread 3", _hash,  _ip_tracker, _port_tracker, serveur.getLocalPort(), _tmp_refresh);
-	    maj.start();	    
+	    MiseAJour maj = new MiseAJour("Thread 3", _hash, _ip_tracker, _port_tracker, serveur.getLocalPort(), _tmp_refresh);
+	    maj.start();
 
 	    while (true){
 		System.out.println(".");
@@ -55,7 +55,6 @@ public class Serveur extends Thread {
 	    System.exit(1);
 	}
     }
-
 
 
     public int attendre(ServerSocket serv){
