@@ -45,7 +45,9 @@ public class Pair{
 
 	// On dispose maintenant de la collection remplie
 	sauver(collection);
-	threadUtilisateur(collection,fichierConf);	
+
+	ThreadUtilisateur th4 = new ThreadUtilisateur("th4", fichierConf, collection);
+	th4.run();
 	/*
 	  Serveur thread2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
 	  thread2.start();
@@ -61,80 +63,6 @@ public class Pair{
 	System.out.println("Fin du programme Pair");    
 
     }
-
-    static void threadUtilisateur(Hashtable hash, FichierConfiguration fichierConf){
-	try {
-	    Socket socket = new Socket(fichierConf.getIp(), fichierConf.getPort());
-	    if (socket == null){
-	    	System.out.println("Serveur not Found in MiseAJour");
-	    	return ;
-	    }
-	    System.out.println("Bienvenue !");
-	    
-	    InputStream in   = socket.getInputStream();  // aviable-close-read-skip
-	    OutputStream out = socket.getOutputStream(); // close-flush-write
-	    
-	    String str;
-	    int ret = 0, res;
-	    byte[] b = new byte[1000];
-	    while (ret != 101){
-		Scanner scan = new Scanner(System.in);
-		System.out.println("Recherche d'un nom de fichier(1) ou d'une clé(2) :");
-		while (!scan.hasNextInt())
-		    str = scan.next();
-		ret = scan.nextInt();
-		if (ret == 1){
-		    System.out.println("tapez le nom du fichier recherché :");
-		    str = scan.next();
-		    out.write(("look ["
-			       + "filename=\"" + str + "\""
-			       +"]").getBytes());
-		    out.flush();
-		}
-		else if (ret == 2){
-		    System.out.println("tapez la clé du chichier recherché :");
-		    str = scan.next();
-		    out.write(("look ["
-			       + "key=\"" + str + "\""
-			       +"]").getBytes());
-		    out.flush();
-		}
-		
-		res = in.read(b);
-		String string = new String(b);
-		// Si end of stream
-		if (res == -1){
-		    //		    throw new SocketException("connection interrompue"); 
-		} else {
-		    if (-1 != string.indexOf("list")){
-			System.out.println("<< " + string);
-			
-			Collecte co = new Collecte(string);
-			InfoPair tab[] = co.getTab();
-			
-			for (int i=0 ; i<tab.length ; i++){
-			    System.out.println("!!! :" + tab[i].toString());
-			}
-			System.out.flush();
-			
-		    }
-		}			
-	    }
-	    
-	    out.close();
-	    in.close();
-	    socket.close();
-	    } catch (IOException ioe) {
-	        System.out.println("IOE exception in Pair : "+ioe);
-	        return ;
-	    }
-	    System.out.println("Bye bye !");
-    }
-    
-    
-    
-    
-    
     
     
     static  void sauver(Hashtable hash){

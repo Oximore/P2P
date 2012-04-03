@@ -22,6 +22,7 @@ public class ServeurThread extends Thread {
     public ServeurThread(String name, Socket s, Hashtable hash){
 	super(name);
 	_socket = s;
+	_hash = hash;
     }
     
     //throws java.io.IOException{
