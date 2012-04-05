@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class Main{
     public static void main(String[] args){
 	System.out.println("Essais");
-	
+
 	int tab[] = new int[5];
 	for (int i=0;i<5;i++)
 	    tab[i] = 2*i;
@@ -27,7 +27,7 @@ public class Main{
 	    liste.add(tab[i]);
 	
 	System.out.println(liste);
-	
+	// */
 	
 	//String g = "Le petit chat";
 	//String[] d = g.split(" ");

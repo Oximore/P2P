@@ -22,4 +22,20 @@ public class Collecte{
     }
     
     public InfoPair[] getTab() { return _tab; }
+
+    public void epurer(String key){
+	int compteur = 0;
+	for (int i=0 ; i<_tab.length ; i++)
+	    if (key.equals(_tab[i].getKey()))
+		compteur++;
+	InfoPair [] tab = new InfoPair[compteur];
+	compteur = 0;
+	for (int i=0 ; i<_tab.length ; i++)
+	    if (key.equals(_tab[i].getKey())){
+		tab[compteur] = _tab[i];
+		compteur++;
+	    }
+	_tab = tab;
+    }
+
 }

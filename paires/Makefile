@@ -1,36 +1,25 @@
-CC=javac
-CFLAGS=
-LDFLAGS=
+J=javac
+R=java
+JFLAGS=
+WFLAGS=-Xlint:unchecked
 EXEC=Pair.class
+SRC=$(wildcard *.java)
 
-all: $(EXEC) 
+all: $(EXEC)
 
-W: Pair.java FichierConfiguration.class Serveur.class Fichier.class FileHashSum.class
-	$(CC) -Xlint:unchecked $<
 
-Pair.class: Pair.java FichierConfiguration.class Serveur.class Fichier.class FileHashSum.class
-	$(CC) $<
+W: $(EXEC)
+	$(J) $(WFLAGS) Pair.java
 
-FichierConfiguration.class: FichierConfiguration.java
-	$(CC) $<
+run: $(EXEC) client
+	$(R) Pair
 
-Serveur.class: Serveur.java MiseAJour.class ServeurThread.class
-	$(CC) $<
+$(EXEC): $(SRC)
+	$(J) Pair.java	
 
-ServeurThread.class: ServeurThread.java 
-	$(CC) $<
+client: ServeurEssais.java ServeurEssaisRepete.java
+	$(J) $<
 
-MiseAJour.class: MiseAJour.java Fichier.class
-	$(CC) $<
-
-FileHashSum.class: FileHashSum.java
-	$(CC) $<
-
-Fichier.class: Fichier.java 
-	$(CC) $<
-
-GestionFichier.class: GestionFichier.java 
-	$(CC) $<
 
 .PHONY: clean clean_dwn mrproper
 
@@ -39,3 +28,4 @@ clean:
 
 clean_dwn:
 	rm ./.*.txt
+

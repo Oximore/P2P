@@ -44,24 +44,20 @@ public class Pair{
 
 
 	// On dispose maintenant de la collection remplie
-	sauver(collection);
+	//sauver(collection);
 
-	ThreadUtilisateur th4 = new ThreadUtilisateur("th4", fichierConf, collection);
-	th4.run();
 	/*
 	  Serveur thread2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
 	  thread2.start();
+	*/  
+	  
+	System.out.println("Programme utilisateur");    
+	ThreadUtilisateur th4 = new ThreadUtilisateur("th4", fichierConf, collection);
+	th4.run();	
+	System.out.println("Fin du programme utilisateur");    
 	
-	  System.out.println("Programme utilisateur");    
-	  try{Thread.sleep(30000);}
-	  catch(InterruptedException ite){}		
-	
-	  threadUtilisateur(collection,fichierConf);
-
-	  System.out.println("Fin du programme utilisateur");    
-	  sauver(collection);*/
+	sauver(collection);
 	System.out.println("Fin du programme Pair");    
-
     }
     
     
