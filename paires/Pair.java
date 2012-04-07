@@ -14,16 +14,18 @@ import java.net.SocketException;
 import java.net.Socket;
 import java.io.OutputStream;
 import java.io.InputStream;
-
+import java.lang.Math;
 
 public class Pair{
     
     public static void main(String[] args){
 	System.out.println("Lancement du programme Pair");
-	System.out.println("Veuillez patienter quelques instants ...");
+	System.out.println("Veuillez patienter quelques instants ...\n");
 	
 	FichierConfiguration fichierConf = new FichierConfiguration("configuration.txt");
+	System.out.println(fichierConf);
 
+	
 	File repertoire = new File("Download");
 	if ( ! repertoire.isDirectory() ) {
 	    System.out.println("Le Dossier Download est introuvable");
@@ -46,18 +48,16 @@ public class Pair{
 	// On dispose maintenant de la collection remplie
 	//sauver(collection);
 
-	/*
-	  Serveur thread2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
-	  thread2.start();
-	*/  
+	Serveur thread2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
+	thread2.start();
 	  
-	System.out.println("Programme utilisateur");    
+	System.out.println("\nProgramme utilisateur");    
 	ThreadUtilisateur th4 = new ThreadUtilisateur("th4", fichierConf, collection);
 	th4.run();	
-	System.out.println("Fin du programme utilisateur");    
+	System.out.println("Fin du programme utilisateur\n");    
 	
 	sauver(collection);
-	System.out.println("Fin du programme Pair");    
+	System.out.println("\nFin du programme Pair");    
     }
     
     
@@ -70,19 +70,19 @@ public class Pair{
 
     static private void remplire(File fichier, Hashtable hash, int taillePieces){
 	String key = FileHashSum.sha1sum(fichier) ;
-	Fichier element = new Fichier(fichier.getName(), key, fichier.length() , taillePieces) ;
-	
+	Fichier element = new Fichier(fichier.getName(), key, fichier.length() , taillePieces) ; // *TODO* la clé n'est pas la bonne
+	int taille;
 	File fichierCache = new File("Download/."+fichier.getName()) ;
-	
+	boolean [] masque = null;
 	// Si le fichier caché existe on récupère le masque
 	if (fichierCache.exists()){
 	    
 	    try {
 		RandomAccessFile raf_fichierCache = new RandomAccessFile(fichierCache,"r") ;
 		String strMasque = raf_fichierCache.readLine() ;
-		System.out.println(strMasque);
+		//System.out.println(strMasque);
 		
-		boolean[] masque = new boolean[strMasque.length()];
+		masque = new boolean[strMasque.length()];
 		for (int i=0 ; i<strMasque.length() ; i++){
 		    if ((strMasque.indexOf('0',i)-i)==0){
 			masque[i] = false;
@@ -90,20 +90,29 @@ public class Pair{
 			masque[i] = true;
 		    }else {
 			System.out.println("Pas cool in Pair.remplire :"+strMasque.charAt(i) + " i:"+ i );
-			System.exit(1);
+			System.exit(42);
 		    }
 		}
-		element.setMasque(masque);
-
+				
 		String strTaillePiece = raf_fichierCache.readLine() ;
-		System.out.println( strTaillePiece);
+		String strTaille = raf_fichierCache.readLine() ;
 		element.setTaillePiece(Integer.parseInt(strTaillePiece));
+		element.setTaille(Integer.parseInt(strTaille));
+		
 		
 		raf_fichierCache.close();
 	    } catch (IOException e) {
 		System.out.println("ioe in remplire : "+e);
 	    }
 	}
+	else {
+	    int l = (int) Math.ceil(((double)element.getTaille()) / element.getTaillePiece());
+	    masque = new boolean[l];
+	    for ( int i=0 ; i<masque.length ; i++)
+		masque[i] = true;
+	}
+	element.setMasque(masque);
+	System.out.println("Chargement en mémoire du fichier : " + element.getName());
 	hash.put(key, element) ;
     }    
     

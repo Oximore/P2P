@@ -1,4 +1,4 @@
-J=javac
+CJ=javac
 R=java
 JFLAGS=
 WFLAGS=-Xlint:unchecked
@@ -9,16 +9,16 @@ all: $(EXEC)
 
 
 W: $(EXEC)
-	$(J) $(WFLAGS) Pair.java
+	$(CJ) $(WFLAGS) Pair.java
 
 run: $(EXEC) client
 	$(R) Pair
 
 $(EXEC): $(SRC)
-	$(J) Pair.java	
+	$(CJ) Pair.java	
 
 client: ServeurEssais.java ServeurEssaisRepete.java
-	$(J) $<
+	$(CJ) $<
 
 
 .PHONY: clean clean_dwn mrproper
@@ -27,5 +27,7 @@ clean:
 	rm  *.class *# *~ ; clear ; ls
 
 clean_dwn:
-	rm ./.*.txt
-
+	touch Download/.truc.data
+	touch Download/.truc.txt
+	rm ./Download/.*.txt ./Download/.*.data
+	ls -a Download/

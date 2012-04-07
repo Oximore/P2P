@@ -75,7 +75,6 @@ class FichierConfiguration{
 
 
     static private int recupererValeureInt(RandomAccessFile f, String champ)throws java.io.IOException {
-	System.out.println(recupererValeure(f, champ));
 	return Integer.parseInt(recupererValeure(f, champ));
     }
 
@@ -97,9 +96,9 @@ class FichierConfiguration{
     public String toString(){
 	return 
 	    "Option de configuration:\n" 
-	    + "Tracker : Ip: " + _ip +", port: " + _port + "\n"
-	    + "Nombre de connexion simultanées max : " + _nb_connexion + "\n"
-	    + "Taille de découpe des fichiers : " + _taille + "\n"
+	    + "Tracker : Ip: " + _ip +", port: " + _port + "\t"
+	    + "Nombre de connexion simultanées max : " + _nb_connexion + "\t"
+	    + "Taille de découpe des fichiers : " + _taille + "\t"
 	    + "Temps de refresh : " + _tmp_refresh + "\n";
     }
 }

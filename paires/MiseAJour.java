@@ -45,7 +45,7 @@ public class MiseAJour extends Thread {
 	    OutputStream out = socket.getOutputStream(); // close-flush-write
 	    
 	    String listeFichiers = fichiersPresents(true);
-	    out.write(("announce listen " + _port_serveur + listeFichiers).getBytes());
+	    out.write(("announce listen " + _port_serveur + " " + listeFichiers).getBytes());
 	    out.flush();
 	    waitOk(in);
 
@@ -72,6 +72,7 @@ public class MiseAJour extends Thread {
 		out.close(); in.close(); socket.close();
 	    }
 	} catch (IOException ioe) {
+	    // modifier ce truc *TODO*
 	    System.out.println("IOE exception in MiseAJour : "+ioe);
 	    return ;
 	}

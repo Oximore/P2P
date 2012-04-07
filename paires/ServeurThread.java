@@ -96,6 +96,7 @@ public class ServeurThread extends Thread {
 		else
 		    reponse += "0";
 	    }
+	    reponse += " ";
 	    out.write(reponse.getBytes());
 	    out.flush();
 	}

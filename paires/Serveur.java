@@ -34,7 +34,7 @@ public class Serveur extends Thread {
 	System.out.println("Début serveur");
 	try {
 	    // Sélectionne un port libre ? entre "60000" et "60025"
-	    ServerSocket serveur = new ServerSocket(0); // (60022);
+	    ServerSocket serveur = new ServerSocket(60020); // (60022);
 	    serveur.setSoTimeout(1000);
 
 

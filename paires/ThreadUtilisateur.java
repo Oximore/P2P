@@ -14,6 +14,11 @@ import java.net.SocketException;
 import java.net.Socket;
 import java.io.OutputStream;
 import java.io.InputStream;
+import java.net.UnknownServiceException;
+import java.io.CharConversionException;
+
+
+//   *TODO* *MEMENTO* compter la longueur des fichiers en bytes pas en String !!!
 
 
 public class ThreadUtilisateur extends Thread {
@@ -30,7 +35,7 @@ public class ThreadUtilisateur extends Thread {
 	System.out.println("Bienvenue dans le programme utilisateur !");
 	Scanner scan = new Scanner(System.in);
 	String question = "", reponse = "" , compteur = "";
-	int ret = -1, i = 0, j, resultat = -1, tmp = 0;
+	int ret = -1, i = 0, j, resultat = -1;
 	String key_to_dl , name_file_to_dl;
 	Collecte co;
 	InfoPair [] tab;
@@ -52,94 +57,99 @@ public class ThreadUtilisateur extends Thread {
 		System.out.println("Bye bye !");
 		return ;
 	    }
-	    if (ret == 1){
-		System.out.println("tapez le nom du fichier recherché :");
-		compteur = scan.next();
-		question = "look [filename=\"" + compteur + "\"]";
-	    }
-	    else if (ret == 2){
-		System.out.println("tapez la clé du fichier recherché :");
-		compteur = scan.next();
-		question = "look [key=\"" + compteur + "\"]";
-	    }
-	    ret = -1;
+	    try {
+		
+		if (ret == 1){
+		    System.out.println("tapez le nom du fichier recherché :");
+		    compteur = scan.next();
+		    question = "look [filename=\"" + compteur + "\"]";
+		}
+		else if (ret == 2){
+		    System.out.println("tapez la clé du fichier recherché :");
+		    compteur = scan.next();
+		    question = "look [key=\"" + compteur + "\"]";
+		}
+		ret = -1;
 
-	    tmp = 0;
-	    while (tmp < 5){
-		try { reponse = demanderQuestion(_fichierConf.getIp(), _fichierConf.getPort(), question, true, 0);
-		    tmp = 10; } catch (IOException ioe) { tmp++; }
-	    }
-	    if (0 != reponse.indexOf("list"))
-		System.exit(-1); // *TODO* levé d'ex
-	    co = new Collecte(reponse);
-	    tab = co.getTab();
+		reponse = demandeCrochet(_fichierConf.getIp(), _fichierConf.getPort(), question, 5, 1000);
+	    
+		if (0 != reponse.indexOf("list"))
+		    throw new CharConversionException("réponse inapropriée :\n>> " + question + "\n<< " + reponse);
+
+		co = new Collecte(reponse);
+		tab = co.getTab();
 	    
 
-	    //  *TODO*
-	    while (! (0<=resultat && resultat <= co.getTab().length+1)){ 
-		System.out.println("Voici les fichiers correspondant à vos critères de recherche:");
-		for (i=0; i<co.getTab().length ; i++)
-		    System.out.println((1+i) + ":\t" + co.getTab()[i]);
-		System.out.println("Tapez 'n' pour commencer le téléchargement ou '0' pour annuler.");
+		//  *TODO*
+		while (! (0<=resultat && resultat <= co.getTab().length+1)){ 
+		    System.out.println("Voici les fichiers correspondant à vos critères de recherche:");
+		    for (i=0; i<co.getTab().length ; i++)
+			System.out.println((1+i) + ":\t" + co.getTab()[i]);
+		    System.out.println("Tapez 'n' pour commencer le téléchargement ou '0' pour annuler.");
 		
-		while (!scan.hasNextInt())
-		    compteur = scan.next();
-		resultat = scan.nextInt();
-	    }
-	    if (resultat != 0){
-		resultat--;
-		key_to_dl = co.getTab()[resultat].getKey();
-		name_file_to_dl = co.getTab()[resultat].getName();
-		taille_tmp = co.getTab()[resultat].getTaille();
-		taille_piece_tmp = _fichierConf.getTaille();
-		
-		co.epurer(key_to_dl);
-		// on recherche le fichier de clé key_to_dl
-		question = "getfile " + key_to_dl;
-		
-		tmp = 0;
-		while (tmp < 5){
-		    try { reponse = demanderQuestion(_fichierConf.getIp(), _fichierConf.getPort(), question, true , 0);
-			tmp = 10; } catch (IOException ioe) { tmp++; }
+		    while (!scan.hasNextInt())
+			compteur = scan.next();
+		    resultat = scan.nextInt();
 		}
-		if (0 != reponse.indexOf("peers") || !key_to_dl.equals(reponse.split(" ")[1]))
-		    System.exit(-1);
-		info = reponse.substring(1+reponse.indexOf("["),reponse.indexOf("]")).split(" ");
-		boolean [][] tabMasque = createTabMasque(info,key_to_dl);
+		if (resultat != 0){
+		    resultat--;
+		    key_to_dl = co.getTab()[resultat].getKey();
+		    name_file_to_dl = co.getTab()[resultat].getName();
+		    taille_tmp = co.getTab()[resultat].getTaille();
+		    taille_piece_tmp = _fichierConf.getTaille();
 		
+		    co.epurer(key_to_dl);
+		    // on recherche le fichier de clé key_to_dl
+		    question = "getfile " + key_to_dl;
 		
-		for ( i=0 ; i<tabMasque.length ; i++) {
-		    bool = false;
-		    for ( j=0 ; j<tabMasque[0].length ; j++){
-			if (!bool && tabMasque[i][j])
-			    bool = true;
-			else
-			    tabMasque[i][j] = false;
-		    }
-		}
+		    reponse = demandeCrochet(_fichierConf.getIp(), _fichierConf.getPort(), question, 5 , 1000);
+		
+		    if (0 != reponse.indexOf("peers") || !key_to_dl.equals(reponse.split(" ")[1]))
+			throw new CharConversionException("réponse inapropriée :\n>> " + question + "\n<< " + reponse);
 
-		System.out.println("Création du fichier Download/" + name_file_to_dl);
-		Fichier newfichier = new Fichier(name_file_to_dl , key_to_dl, taille_tmp , taille_piece_tmp);
-		_hash.put(key_to_dl, newfichier);
-		System.out.println("Fichier crée.");
+		    info = reponse.substring(1+reponse.indexOf("["),reponse.indexOf("]")).split(" ");
+		    boolean [][] tabMasque = createTabMasque(info,key_to_dl);
 		
-		for ( i=0 ; i<tabMasque.length ; i++ ){
-		    port_tmp = Integer.parseInt(info[i].split(":")[1]);
-		    telecharger(info[i].split(":")[0], port_tmp, key_to_dl, tabMasque[i]);    
-		    // sauve les données ?
+		
+		    for ( i=0 ; i<tabMasque.length ; i++) {
+			bool = false;
+			for ( j=0 ; j<tabMasque[0].length ; j++){
+			    if (!bool && tabMasque[i][j])
+				bool = true;
+			    else
+				tabMasque[i][j] = false;
+			}
+		    }
+
+		    System.out.println("Création du fichier Download/" + name_file_to_dl);
+		    Fichier newfichier = new Fichier(name_file_to_dl , key_to_dl, taille_tmp , taille_piece_tmp);
+		    _hash.put(key_to_dl, newfichier);
+		    System.out.println("Fichier crée.");
+		    
+		    for ( i=0 ; i<tabMasque.length ; i++ ){
+			port_tmp = Integer.parseInt(info[i].split(":")[1]);
+			telecharger(info[i].split(":")[0], port_tmp, key_to_dl, tabMasque[i]);    
+			// sauve les données ?
+		    }
+		
+		    System.out.println("Fichier téléchargé");
 		}
-		
-		System.out.println("Fichier téléchargé");
+		resultat = -1;
+	    } catch (UnknownServiceException se) {
+		System.out.println("Un serveur n'as pas pu être trouvé : " + se);
+		//      return ;
+	    } catch (CharConversionException ce) {
+		System.out.println("Réponse d'un serveur mal formée : " + ce);
+		//	    return ;
 	    }
-	    resultat = -1;
 	}		
-    }
+    }    
     
     // @info : couples Ip/Port 
     // @key  : clé du fichier souhaité
-    public boolean [][] createTabMasque(String [] info, String key){
-	int i, j, k, tmp, port;
-	String ip, masque, reponse = "";
+    public boolean [][] createTabMasque(String [] info, String key) throws UnknownServiceException, CharConversionException {
+	int i, j, k, port;
+	String ip, masque, question, reponse = "";
 	boolean [][] tabMasque = null;
 	
 	
@@ -147,14 +157,12 @@ public class ThreadUtilisateur extends Thread {
 	    ip   = info[i].split(":")[0];
 	    port = Integer.parseInt(info[i].split(":")[1]);
 	    
-	    tmp = 0;
-	    while (tmp < 5){
-		try { reponse = demanderQuestion(ip, port, "interested "+key, false, 3);
-		    tmp = 10; } catch (IOException ioe) { tmp++; }
-	    }
-	    if (0!= reponse.indexOf("have") || !key.equals(reponse.split(" ")[1]))
-		System.exit(-1);
+	    question =  "interested " + key;
+	    reponse = demandeMot(ip, port, question, 5, 1000, 3);
 	    
+	    if (0!= reponse.indexOf("have") || !key.equals(reponse.split(" ")[1]))
+		throw new CharConversionException("réponse inapropriée :\n>> " + question + "\n<< " + reponse);
+	    	    
 	    masque = reponse.split(" ")[2];
 	    //System.out.println("Masque :" + masque +"!");
 	    if (i == 0) {
@@ -170,7 +178,7 @@ public class ThreadUtilisateur extends Thread {
 		else if (j == masque.indexOf("1", j))
 		    tabMasque[i][j] = true;
 		else 
-		    System.exit(-1);
+		    throw new CharConversionException("masque mal formé");
 	    }
 	}
 	return tabMasque;
@@ -178,7 +186,7 @@ public class ThreadUtilisateur extends Thread {
 	
 	    
     // *TODO* check ici si le fichier existe : @key -> @Fichier
-    public void telecharger(String ip, int port, String key, boolean [] masque){
+    public void telecharger(String ip, int port, String key, boolean [] masque) throws UnknownServiceException, CharConversionException {
 	String reponse = "";
 	String question = new String("getpieces " + key + " [");
 	for (int i=0 ; i<masque.length ; i++)
@@ -186,19 +194,11 @@ public class ThreadUtilisateur extends Thread {
 		question += i + " ";
 	question = question.trim() + "]";
 	
-
-
-
-
-	int tmp = 0;
-	while (tmp < 5){
-	    try { reponse = demanderQuestion(ip, port, question, true , 0);
-		tmp = 10; } catch (IOException ioe) { tmp++; }
-	}
+	reponse = demandeCrochet(ip, port, question, 5 , 1000);
 	
 	String key_tmp = reponse.split(" ")[1];
 	if (0 != reponse.indexOf("data") || key == null || !key.equals(key_tmp))
-	    System.exit(-1);
+	    throw new CharConversionException("réponse inapropriée :\n>> " + question + "\n<< " + reponse);
 	
 	enregistre((Fichier)_hash.get(key_tmp), reponse.substring(1+reponse.indexOf("["),reponse.indexOf("]")).split(" "));
     }
@@ -209,21 +209,10 @@ public class ThreadUtilisateur extends Thread {
 	String [][] tab = new String[infos.length][2];
 	int indice;
 	boolean [] masque  = f.getMasque();
-	
-	/** /
-	System.out.print("masque getM : ");
-	for (int i=0 ; i<masque.length ; i++)
-	    if (masque[i])
-		System.out.print("1");
-	    else
-		System.out.print("0");
-	System.out.print("\n"); // */
-
-
-
+	 
 	for (int i=0 ; i<infos.length ; i++)
 	    tab[i] = infos[i].split(":"); 
-	
+
 	if (f != null){
 	    try{
 		RandomAccessFile file = new RandomAccessFile("Download/"+f.getName(), "rw");
@@ -232,20 +221,50 @@ public class ThreadUtilisateur extends Thread {
 		    indice = Integer.parseInt(tab[i][0]);
 		    file.seek(indice*f.getTaillePiece());
 		    file.writeBytes(tab[i][1]);
+		    //file.write(tab[i][1].getBytes());
 		    masque[indice] = true;
 		}
 		file.close();
 	    } catch (IOException ioe) { System.out.println("ioe in enregistrer" + ioe); }
-	    
+
 	} else { System.out.println("premier para de enregistrer foireux"); }
 	f.setMasque(masque);
     }
+
+    // @ tmpAttente en ms
+    public String demandeCrochet(String ip, int port, String question, int nbIteration, int tmpAttente) throws UnknownServiceException {
+	return demandeIntermediare(ip, port, question, true, 0, nbIteration, tmpAttente);
+    }
+
+    public String demandeMot(String ip, int port, String question, int nbIteration, int tmpAttente, int nbMots) throws UnknownServiceException {
+	return demandeIntermediare(ip, port, question, false, nbMots, nbIteration, tmpAttente);
+    }
     
+    
+    public String demandeIntermediare(String ip, int port, String question, boolean attCrochets, int nombreMot, int nbIteration, int tmpAttente ) throws UnknownServiceException {
+	String reponse = "";
+	int tmp = 0;
+	while (tmp < nbIteration){
+	    try { reponse = demanderQuestion(ip, port, question, attCrochets, nombreMot);
+		tmp = nbIteration*2; 
+	    } catch (IOException ioe) { 
+		tmp++; 
+		if (tmpAttente>0)
+		    try{Thread.sleep(tmpAttente);}
+		    catch(InterruptedException ite){}				
+	    }
+	}
+	if (tmp <= nbIteration)
+	    throw new UnknownServiceException(ip + "/" + port);
+	    
+	return reponse;
+    }	
+
     
     public String demanderQuestion(String ip, int port, String question, boolean attCrochets, int nombreMot) throws IOException {
 	System.out.println("Essai de connexion au serveur " + ip + " " + port + " ...");
 	Socket socket = new Socket(ip,port); 	
-	System.out.println("Connexion au serveur " + ip + " " + port);
+	System.out.println("Connexion au serveur " + ip + "/" + port);
 	InputStream in   = socket.getInputStream();  // read-skip-close
 	OutputStream out = socket.getOutputStream(); // write-flush-close
 	
@@ -280,7 +299,7 @@ public class ThreadUtilisateur extends Thread {
 	
 	out.close(); in.close(); socket.close();
 	System.out.println("<< " + reponse);	
-	System.out.println("Déco du serveur " + ip + port);
+	System.out.println("Déco du serveur " + ip + "/" + port);
 	return reponse;
     }
 
