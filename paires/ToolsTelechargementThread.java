@@ -161,7 +161,7 @@ public class ToolsTelechargementThread extends Thread {
 	byte[] b = {0};
 	int res, compteur = 0;
 	res = in.read();
-	//b[0] = res; 
+	// on laisse un peu de temps pour réceptioner toutes les données (??)
 	try{Thread.sleep(100);}
 	catch(InterruptedException ite){}		
 	

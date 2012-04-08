@@ -21,10 +21,10 @@ public class Pair{
     public static void main(String[] args){
 	System.out.println("Lancement du programme Pair");
 	System.out.println("Veuillez patienter quelques instants ...\n");
-	
+
 	FichierConfiguration fichierConf = new FichierConfiguration("configuration.txt");
 	System.out.println(fichierConf);
-
+	
 	
 	File repertoire = new File("Download");
 	if ( ! repertoire.isDirectory() ) {
@@ -48,7 +48,13 @@ public class Pair{
 	// On dispose maintenant de la collection remplie
 	sauver(collection);
 	
-	Serveur th2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
+	int localPort = 0;
+	if (0 < args.length){
+	    localPort = Integer.parseInt(args[0]); 
+	}
+
+	//	Serveur th2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
+	Serveur th2 = new Serveur("String name", collection, fichierConf, localPort);
 	th2.start();
 	
 	/* * /
