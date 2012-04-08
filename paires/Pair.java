@@ -51,12 +51,12 @@ public class Pair{
 	Serveur th2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
 	th2.start();
 	
-	
+	/* * /
 	System.out.println("\nReprise du téléchargement des fichiers non complets");    
 	RepriseTelechargement th6 = new RepriseTelechargement("th6", fichierConf, collection);
 	th6.run();	
 	System.out.println("Fin de la reprise des dl\n");    
-
+	// */
 
 	System.out.println("\nProgramme utilisateur");    
 	ThreadUtilisateur th4 = new ThreadUtilisateur("th4", fichierConf, collection);
