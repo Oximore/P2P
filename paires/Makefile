@@ -4,18 +4,18 @@ JFLAGS=
 WFLAGS=-Xlint:unchecked
 EXEC=Pair.class
 SRC=$(wildcard *.java)
+EXECS=$(SRC:.java=.class )
 
-all: $(EXEC) $(SRC)
 
+all: $(SRC)
+	-rm *.class
+	$(CJ) Pair.java
 
 W: $(EXEC)
 	$(CJ) $(WFLAGS) Pair.java
 
 run: $(EXEC) client
 	$(R) Pair
-
-$(EXEC): $(SRC)
-	$(CJ) Pair.java	
 
 client: ServeurEssais.java ServeurEssaisRepete.java
 	$(CJ) $<
@@ -24,10 +24,15 @@ client: ServeurEssais.java ServeurEssaisRepete.java
 .PHONY: clean clean_dwn mrproper
 
 clean:
-	rm  *.class *# *~ ; clear ; ls
+	-rm  *.class *# *~ ; clear ; ls
 
 clean_dwn:
-	touch Download/.truc.data
-	touch Download/.truc.txt
-	rm ./Download/.*.txt ./Download/.*.data ./Download/*.data
+	-rm ./Download/.*.txt ./Download/.*.data ./Download/*.data
 	ls -a Download/
+
+copy:
+	-rm -r ../trucmuche
+	cp -r ../paires ../trucmuche
+	make clean_dwn ../trucmuche
+	-rm ../trucmuche/Download/*.txt ../trucmuche/Download/.*.txt
+	echo "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" >> ../trucmuche/Download/foo.txt

@@ -106,15 +106,23 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 		    info = reponse.substring(1+reponse.indexOf("["),reponse.indexOf("]")).split(" ");
 		    boolean [][] tabMasque = createTabMasque(info,key_to_dl);
 		
-		
-		    for ( i=0 ; i<tabMasque.length ; i++) {
-			bool = false;
-			for ( j=0 ; j<tabMasque[0].length ; j++){
-			    if (!bool && tabMasque[i][j])
-				bool = true;
+		    //    System.out.println("pouet!");
+		    for ( i=0 ; i<tabMasque[0].length ; i++) {
+			bool = true;
+			for ( j=0 ; j<tabMasque.length ; j++){
+			    if (bool && tabMasque[j][i])
+				bool = false;
 			    else
-				tabMasque[i][j] = false;
+				tabMasque[j][i] = false;
 			}
+			/*
+			for ( j=0 ; j<tabMasque.length ; j++){
+			    if (tabMasque[][j])
+				System.out.print(1);
+			    else
+				System.out.print(0);
+			}
+			System.out.println("°°°°");*/
 		    }
 
 		    System.out.println("Création du fichier Download/" + name_file_to_dl);

@@ -42,7 +42,7 @@ public class ToolsTelechargementThread extends Thread {
 	    ip   = info[i].split(":")[0];
 	    port = Integer.parseInt(info[i].split(":")[1]);
 	    
-	    question =  "interested " + key;
+	    question =  "interested " + key + " ";
 	    reponse = demandeMot(ip, port, question, 5, 1000, 3);
 	    
 	    if (0!= reponse.indexOf("have") || !key.equals(reponse.split(" ")[1]))
@@ -57,7 +57,8 @@ public class ToolsTelechargementThread extends Thread {
 		    for ( k=0 ; k<tabMasque[0].length ; k++)
 			tabMasque[j][k] = false;
 	    }
-	    for ( j=0 ; j<masque.length()-1 ; j++){
+	    //	    for ( j=0 ; j<masque.length()-1 ; j++){
+	    for ( j=0 ; j<masque.length() ; j++){
 		if (j == masque.indexOf("0", j))
 		    tabMasque[i][j] = false;
 		else if (j == masque.indexOf("1", j))
@@ -65,6 +66,11 @@ public class ToolsTelechargementThread extends Thread {
 		else 
 		    throw new CharConversionException("masque mal formé");
 	    }
+	    // for ( j=0 ; j<tabMasque[0].length ; j++)
+	    // 	if (tabMasque[i][j])
+	    // 	    System.out.print(1);
+	    // 	else System.out.print(0);
+	    // System.out.println("!!!!");
 	}
 	return tabMasque;
     }

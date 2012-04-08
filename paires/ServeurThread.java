@@ -50,27 +50,31 @@ public class ServeurThread extends Thread {
 	    while (res != -1){
 		b[0] = (byte)res; 
 		question += new String(b);
+		System.out.println("<< " + question);
 		// Si on a un espace on vérifie la conformité de l'expression
 		if (question.length()-1 == question.indexOf(" ", question.length()-1)){
 		    // Si le mot est reconnu
-		    if (0 == question.indexOf("interested") || 0 == question.indexOf("getPieces")){
+		    System.out.println("1: "  + question.indexOf("interested"));
+		    if (0 == question.indexOf("interested") || 0 == question.indexOf("getpieces")){
+			//System.out.println("2");
 			key = lectureKey(in);
-			
+			//System.out.println("3");
 			// Si c'est une action interessted alors ..	
 			if (0 == question.indexOf("interested")){
 			    // Protocole : "interested $key"
 			    // "have $key $buffermap" (<- séquence de bit !)
-			    System.out.println("on a passé le actionInterested");
+			    //System.out.println("4");
+			    System.out.println("<< " + question + key + "???");
 			    actionInterested(key, out);	    
 			}
 			
 			// Sinon c'est une action getPieces
-			else if (0 == question.indexOf("getPieces")){
+			else if (0 == question.indexOf("getpieces")){
 			    // Protocole : "getpieces $key [$index1 $index2 $index3]"
 			    // "data $key [$index1:$piece1 $index2:$piece2 $index3:$piece3]"
-			    
+			    //System.out.println("3");
 			    pieces = lecturePieces(in);
-
+			    System.out.println("<< " + question + key + " " + pieces);
 			    try {
 				actionGetpiece (key, pieces, out);
 			    } catch(IOException e){
@@ -98,76 +102,28 @@ public class ServeurThread extends Thread {
 	}
     }
     
-    /**********************************/
-	//     boolean fin = false;
-	//     byte[] b = new byte[1000];
-	//     int res;
-	//     while (!fin){
-	// 	// Peut être : lire, voir si contient "have" si il contient prendre le reste ...
-	// 	res = in.read(b);
-	// 	String string = new String(b);
-	// 	System.out.println("??<< " + string);
-	// 	// Si end of stream
-	// 	if (false){
-	// 	//if (res == -1){
-	// 	    //levé d'exception
-	// 	    throw new SocketException("connection interrompue");
-	// 	} else {
-	// 	    System.out.println("on a passé le else");
-
-	// 	    if (-1 != string.indexOf("interested")){
-	// 		// Protocole : "interested $key"
-	// 		// "have $key $buffermap" (<- séquence de bit !)
-	// 		// renvoie le buffmap correspondant si existe
-	// 		System.out.println("on a passé le actionInterested");
-		    
-	// 		actionInterested(string.split(" ")[1], out);
-
-	// 	    } else if (-1 != string.indexOf("getpieces")){
-	// 		// Protocole : "getpieces $key [$index1 $index2 $index3]"
-	// 		// "data $key [$index1:$piece1 $index2:$piece2 $index3:$piece3]"
-	// 		// renvoie les data demandée
-
-	// 		actionGetpiece(string, out);
-
-
-
-	// 	    }
-	// 	}
-	//     }
-
-	//     in.close();
-	//     out.close();
-	//     _socket.close();
-	// }
-	// catch(SocketException se){
-	//     System.out.println("SocketExc exception dans le run : " + se);
-	//     System.out.println("Fin de la connection serveur.");
-	//     System.exit(1);
-	// }
-	// catch(IOException e){
-	//     System.out.println("Et bim : ioe exception dans le run : " + e);
-	//     System.exit(1);
-	// }
-
-    private String lectureKey(InputStream in) {
+    private String lectureKey(InputStream in) throws IOException {
 	String key = "";
 	byte[] b = {0};
 	int res;
-	
+
+	System.out.println("10");
 	res = in.read();
 	// On lit un mot
 	while (res != -1){
 	    b[0] = (byte)res; 
 	    key += new String(b);
-	    res = in.read();
+	    //System.out.println("key en cours :" + key);
 	    if (key.length()-1 == key.indexOf(" ", key.length()-1))
 		res = -1;
+	    else
+		res = in.read();
+	    //	    System.out.println("12");
 	}
-	return key;
+	return key.trim();
     }
     
-    private String lecturePieces(InputStream in) {
+    private String lecturePieces(InputStream in) throws IOException {
 	String pieces = "";
 	byte[] b = {0};
 	int res;
@@ -177,20 +133,22 @@ public class ServeurThread extends Thread {
 	while (res != -1){
 	    b[0] = (byte)res; 
 	    pieces += new String(b);
-	    res = in.read();
 	    if (pieces.length()-1 == pieces.indexOf("]", pieces.length()-1))
 		res = -1;
+	    else
+		res = in.read();
 	}
 	return pieces;
     }
     
 
-    private void actionInterested (String key, OutputStream out) {
+    private void actionInterested (String key, OutputStream out) throws IOException {
+	System.out.println("attention ...");
 	Object o = _hash.get(key);
 	System.out.println("on y est !!");
 	if (o != null){
 	    Fichier f = (Fichier)o;
-	    System.out.println("On me demande mon fichier "+key);
+	    System.out.println("On me demande mon fichier " + key);
 	    String reponse = "have " + key + " ";
 	    int i;
 	    boolean[] masque = f.getMasque();
@@ -221,7 +179,7 @@ public class ServeurThread extends Thread {
 	    System.out.println("On me demande des pièce de mon fichier " + key);
 	    
 	    String[] index = ((String)demande.subSequence(demande.indexOf("[")+1,demande.indexOf("]"))).split(" ");
-	    String reponse = "data " + key + "[";
+	    String reponse = "data " + key + " [";
 	    int i;
 	    boolean[] masque = f.getMasque();
 	    
@@ -235,11 +193,11 @@ public class ServeurThread extends Thread {
 		int id = Integer.parseInt(index[i]); // *TODO* vérif
 		if (masque[id]){
 		    // on ouvre le fichier dont on extrait les données
-		    RandomAccessFile file = new RandomAccessFile("Download/"+f.getName(), "r");
+		    RandomAccessFile file = new RandomAccessFile("Download/" + f.getName(), "r");
 		    file.seek(id*taille_piece);
 		    retour = file.read(lecteur);
 		}
-		reponsePartielle += id + ":" + lecteur + " ";
+		reponsePartielle += id + ":" + new String(lecteur) + " ";
 
 	    }
 	    

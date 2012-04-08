@@ -71,6 +71,7 @@ public class Pair{
 	
 	sauver(collection);
 	System.out.println("\nFin du programme Pair");    
+	System.exit(0);
     }
     
     
