@@ -46,11 +46,18 @@ public class Pair{
 
 
 	// On dispose maintenant de la collection remplie
-	//sauver(collection);
+	sauver(collection);
+	
+	Serveur th2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
+	th2.start();
+	
+	
+	System.out.println("\nReprise du téléchargement des fichiers non complets");    
+	RepriseTelechargement th6 = new RepriseTelechargement("th6", fichierConf, collection);
+	th6.run();	
+	System.out.println("Fin de la reprise des dl\n");    
 
-	Serveur thread2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
-	thread2.start();
-	  
+
 	System.out.println("\nProgramme utilisateur");    
 	ThreadUtilisateur th4 = new ThreadUtilisateur("th4", fichierConf, collection);
 	th4.run();	

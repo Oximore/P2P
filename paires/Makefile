@@ -5,7 +5,7 @@ WFLAGS=-Xlint:unchecked
 EXEC=Pair.class
 SRC=$(wildcard *.java)
 
-all: $(EXEC)
+all: $(EXEC) $(SRC)
 
 
 W: $(EXEC)
@@ -29,5 +29,5 @@ clean:
 clean_dwn:
 	touch Download/.truc.data
 	touch Download/.truc.txt
-	rm ./Download/.*.txt ./Download/.*.data
+	rm ./Download/.*.txt ./Download/.*.data ./Download/*.data
 	ls -a Download/
