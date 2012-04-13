@@ -52,12 +52,11 @@ struct file_peers{
 }
 
 */
-struct peer * peer_list_add(struct peer_list * l,struct peer * p)
+int peer_list_add(struct peer_list * l,struct file_list *f,struct peer * p)
 {
   //  struct peer * p = peer_init(ip_address,port);
   p->next = l->first;
   l->first = p;
-  l->size++;
   return p;
 }
 
@@ -106,13 +105,12 @@ struct peer * peer_init(unsigned long ip_address, int port, struct file_list * f
   return p;
 }
 
-struct peer * peer_delete(struct peer * p, struct file_list * f)
+struct peer * peer_delete(struct peer * p, struct file_list * f,struct peer_list * pl)
 {
   struct peer * p2 = p->next;
   delete_peer_pointer(p,f);
   if(p->file_list != NULL)
     free(p->file_list);
-    //  file_list_delete(p->file_list);
   free(p);
   return p2;
 }
