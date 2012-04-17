@@ -10,7 +10,7 @@ int communicate(struct client * client, struct client_tab* tab, struct list* pee
 void end(struct client* client, struct client_tab* tab);
 void remplit_update(struct list* peers, struct base *base,char* keys, int ip);
 void remplit_announce(struct base* base,char* s);
-
+ 
 
 
 
