@@ -9,7 +9,32 @@
 #include <unistd.h> /* close */
 #include <netdb.h> /* gethostbyname */
 #include <pthread.h>
-#define PORT 1564
+#define PORT 4012
+#define BUF_SIZE 40
+void write_client(int sock, const char *buffer)
+{
+   if(send(sock, buffer, strlen(buffer), 0) < 0)
+   {
+      perror("send()");
+      exit(errno);
+   }
+}
+
+int read_client(int sock, char *buffer)
+{
+   int n = 0;
+
+   if((n = recv(sock, buffer, BUF_SIZE - 1, 0)) < 0)
+   {
+      perror("recv()");
+      /* if recv error we disonnect the client */
+      n = 0;
+   }
+
+   buffer[n] = '\0';
+
+   return n;
+}
 
 
 int main()
@@ -29,6 +54,15 @@ int main()
     {
       perror("connect()");
       exit(errno);
+    }
+  write_client(sock,"je suis le pair");
+  char c[BUF_SIZE];
+  int r;
+  while(1)
+    {
+      r = read_client(sock,c);
+      if(r!=0)
+	printf("%s\n",c);
     }
   return EXIT_SUCCESS;
 }
