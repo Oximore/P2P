@@ -6,8 +6,8 @@
 #include "interface.h"
 #include <string.h>
 
-#define RECV_BUF_SIZE 1024
-//#define SEND_BUF_SIZE 1024
+#define RECV_BUF_SIZE 4096
+//#define SEND_BUF_SIZE 4096
 #define IDLE_TIME // en secondes
 
 ulong ip;
@@ -22,21 +22,21 @@ int communicate(struct donnees* donnees)
   
   char* recv_buffer= malloc(sizeof(char)*RECV_BUF_SIZE);
   
-  char* s1 = malloc(RECV_BUF_SIZE*sizeof(char));
-  char* s2 = malloc(RECV_BUF_SIZE*sizeof(char));
-  char* s3 = malloc(RECV_BUF_SIZE*sizeof(char));
-  char* s4 = malloc(RECV_BUF_SIZE*sizeof(char));
-  char* s5 = malloc(RECV_BUF_SIZE*sizeof(char));
-  char* s6 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char* s1 = NULL;
+  char* s2 = NULL;
+  char* s3 = NULL;
+  char* s4 = NULL;
+  char* s5 = NULL;
+  char* s6 = NULL;
   int port;
   int read;
+  int decalage;
+  int length;
+  int piece_size;
+   
   while(1)
     {
       
-      
-      //read_client(client->sock, recv_buffer);
-      //write_client(tab[tab_ind].sock, send_buffer)
-      // tester si on a reçu avant de parser encore !!!!!!!!
       
       read=read_client(donnees->client->sock, recv_buffer);
       if(read > 0)
@@ -45,37 +45,47 @@ int communicate(struct donnees* donnees)
 	  switch(recv_buffer[0])
 	    {
 	    case'a':
-	      if(recv_buffer[read-1] != ']') printf("le recv a merdé");//gérer les messages en plusieurs paquets
-	      else
+	      decalage=0;
+	      while(compte_crochet_fermant(recv_buffer)<2)
 		{
-		  sscanf(recv_buffer,"%s %s %d %s [%s] %s [%s]",s1, s2, &port, s3, s4, s5, s6);
-		  if(strcmp(s1,"announce")==0 && strcmp(s2,"listen")==0 && strcmp(s3,"seed")==0 && strcmp(s5,"leech")==0)
+		  decalage+=read;
+		  read=read_client(donnees->client->sock, recv_buffer + decalage);
+		}	  
+	      sscanf(recv_buffer,"%s %s %d %s [%s] %s [%s]",s1, s2, &port, s3, s4, s5, s6);
+	      if(strcmp(s1,"announce")==0 && strcmp(s2,"listen")==0 && strcmp(s3,"seed")==0 && strcmp(s5,"leech")==0)
+		{
+		  if(p == NULL)
 		    {
-		      if(p == NULL)
-			{
-			  list_add(donnees->peer_list , ip , port);
-			  p=trouve_peer(donnees->peer_list, ip);
-			}
-		      char* res=fusion_keys_string(s4, s6);
-		      //remplit_announce(res);// A faire
-		      free(res);
-		      write_client(donnees->client->sock, "ok");
+		      peer_list_add(donnees->peer_list , ip, port, NULL);//à checker
+		      p=find_peer(donnees->peer_list, ip);// idem
 		    }
+		  while(s4 != '\0')
+		    {
+		      sscanf(s4, "%s %d %d %s %s", s1, length, piece_size, s2, s4);			  
+		      //remplit_file(s1, length, piece_size, s2); // A faire
+		      
+		    }
+		  //remplit_keys(s6);
+		  write_client(donnees->client->sock, "ok");
 		}
 	      break;
 	      
-	    case'u':// 
-	      sscanf(recv_buffer,"%s %s [%s] %s [%s]",s1 ,s2, s3, s4, s5);
-	      if(strcmp(s1,"update")==0 && strcmp(s2,"seed")==0 && strcmp(s4,"leech")==0)
-		{
-		  if(p==NULL){end(donnees->client, donnees->ct); return 0;}//ferme la socket
-		  else
-		    { 
-		      char* res=fusion_keys_string(s3, s5);
-		      remplit_update(res);
-		      free(res);
-		      write_client(donnees->client->sock, "ok");
-		    }	    
+	    case'u':
+	      if(recv_buffer[read-1] != ']') printf("le recv a merdé");//gérer les messages en plusieurs paquets
+	      else
+		{ 
+		  sscanf(recv_buffer,"%s %s [%s] %s [%s]",s1 ,s2, s3, s4, s5);
+		  if(strcmp(s1,"update")==0 && strcmp(s2,"seed")==0 && strcmp(s4,"leech")==0)
+		    {
+		      if(p==NULL){end(donnees->client, donnees->ct); return 0;}//ferme la socket
+		      else
+			{ 
+			  char* res=fusion_keys_string(s3, s5);
+			  remplit_keys(res);
+			  free(res);
+			  write_client(donnees->client->sock, "ok");
+			}	    
+		    }
 		}
 	      break;
 	      
@@ -99,7 +109,7 @@ void end(struct client* client, struct client_tab* tab)
   }
 
 
-void remplit_update(char* keys)//met a jour la liste des pairs et previous_update
+void remplit_keys(char* keys)//met a jour la liste des pairs et previous_update
 {
   
   struct base* a_ajouter=keys_string_to_base(keys);
@@ -131,30 +141,38 @@ void remplit_update(char* keys)//met a jour la liste des pairs et previous_updat
     }
   
 
-
+  // on ajoute ceux qui sont toujours dans a_ajouter
   elt=a_ajouter->first;
   while(elt!=NULL)
     {
       struct element* element=trouve_element(base, elt->key);
-      list_add(element->peer_list, ip, p->port);
+      if(element != NULL)
+	{
+	  list_add(element->peer_list, ip, p->port);
+	}
+      //else    A faire: appeler la création. avec quels argument ?  
+      elt = elt->next;
     }
   
+ 
+  // on supprime ceux qui sont toujours dans a_enlever
   elt=a_enlever->first;
   while(elt!=NULL)
     {
       struct element* element=trouve_element(base, elt->key);
-      list_peer_delete(element->peer_list, ip);
+      if(element!= NULL)
+	{
+	  list_peer_delete(element->peer_list, ip);
+	}
+      //else  A faire
+      elt = elt->next;
     }
   
+  base_delete(a_ajouter);
+  base_delete(a_enlever);
   free(a_ajouter);
   free(a_enlever);
 }
-
-/*
-void remplit_announce(char* s)
-{
-return;}
-*/
 
 
 char* fusion_keys_string(char* seed, char* leech)
@@ -203,4 +221,51 @@ struct base* keys_string_to_base(char* keys)
   base_add(new_base, e);
   return new_base;
   
+}
+
+void remplit_file(char* filename, int length, int piece_size, char* key)
+{
+
+  char* my_base = keys_string_to_base(key);
+  // fichier existe?  
+  //... si on doit créer le fichier:
+  //my_base->first
+  int name_l=strlen(filename);
+  int key_l=strlen(key);
+  char* new_key= malloc(sizeof(char)*(key_l+1));
+  char* new_name= malloc(sizeof(char)*(name_l+1));
+  int i;
+  
+  for(i=0;i<key_l;i++)
+    {
+      new_key[i]=key[i];
+    } 
+  for(i=0;i<name_l;i++)
+    {
+      new_name[i]=filename[i];
+    }
+  new_name[name_l]='\0';
+  new_key[key_l]='\0';
+  
+  
+
+  //creer la list -> creer le pair
+struct element * e = element_init(new_key, new_name, length, piece_size, struct list * l);
+
+
+base_add(base, e);
+base_delete(my_base);
+}
+
+
+int compte_crochet_fermant(char* buf)
+{
+  int i=0;
+  int j=0;
+  while(buf[j]!='\0')
+    {
+      if(buf[j]==']') i++;
+      j++;
+    }
+  return i;
 }
