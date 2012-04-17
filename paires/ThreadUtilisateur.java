@@ -23,7 +23,7 @@ import java.io.CharConversionException;
 
 public class ThreadUtilisateur extends ToolsTelechargementThread {
 
-    public ThreadUtilisateur(String name, FichierConfiguration fichierConf, Hashtable hash){
+    public ThreadUtilisateur(String name, FichierConfiguration fichierConf, Hashtable<String,Fichier> hash){
 	super(name,fichierConf,hash);
     }
     
@@ -129,6 +129,8 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 		    Fichier newfichier = new Fichier(name_file_to_dl , key_to_dl, taille_tmp , taille_piece_tmp);
 		    _hash.put(key_to_dl, newfichier);
 		    System.out.println("Fichier crée.");
+
+		    System.out.println("APOCALIIIIPSE ! : " + tabMasque.length);
 		    
 		    for ( i=0 ; i<tabMasque.length ; i++ ){
 			port_tmp = Integer.parseInt(info[i].split(":")[1]);
@@ -145,6 +147,9 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 	    } catch (CharConversionException ce) {
 		System.out.println("Réponse d'un serveur mal formée : " + ce);
 		//	    return ;
+	    } catch (Exception e) {
+		System.out.println("Exception : " + e);
+		e.printStackTrace();
 	    }
 	}		
     }    
