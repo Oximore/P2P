@@ -10,7 +10,7 @@
 #include <pthread.h>
 
 #define MAX 20
-#define PORT 1564
+//#define PORT 1564
 #define BUF_SIZE 1024
 
 struct client
@@ -29,12 +29,18 @@ struct client_tab
 struct donnees
 {
   struct client_tab *ct;
-  struct client * client;
+  struct client * client;// ne sert a rien?
   struct list * peer_list;
   struct base * base;
   int sock;
   struct sockaddr_in * sockaddr;
 };
+
+struct donnees_function{
+  struct donnees * _ref;
+  struct client * current;
+};
+
 
 struct client_tab * client_tab_init();
 struct client * client_tab_add(struct client_tab *);
@@ -45,7 +51,7 @@ void end_connection(int sock);
 int read_client(int sock, char *buffer);
 void write_client(int sock, const char *buffer);
 struct donnees * donnees_init();
-
+int get_port();
 
 
 

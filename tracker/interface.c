@@ -7,16 +7,18 @@
 #include "list.h"
 #include "base.h"
 
-int sock;
-struct sockaddr_in *sockaddr;
-struct client_tab *tab;
-struct list *peers;
 
 int com(struct donnees * d)
 {
+  char c[40];
+  int r;
   printf("%d\n",d->client->sock);
   while(42)
-    {}
+    {
+      r = read_client(d->client->sock,c);
+      if(r!=0)
+	printf("%s\n",c);
+    }
   return 0;
 }
 
@@ -61,7 +63,7 @@ int init_connection(struct donnees * d)
    }
 
    d->sockaddr->sin_addr.s_addr = htonl(INADDR_ANY);
-   d->sockaddr->sin_port = htons(PORT);
+   d->sockaddr->sin_port = htons(get_port());
    d->sockaddr->sin_family = AF_INET;
 
    if(bind(d->sock,(struct sockaddr *) d->sockaddr, sizeof(struct sockaddr_in)) == -1)
@@ -95,7 +97,7 @@ int read_client(int sock, char *buffer)
       n = 0;
    }
 
-   buffer[n] = 0;
+   buffer[n] = '\0';
 
    return n;
 }
@@ -156,3 +158,13 @@ struct donnees * donnees_init()
   d->sockaddr=NULL;
   return d;
 }
+
+int get_port()
+{
+  const char r[2]="r\0";
+  FILE * f = fopen("./config.txt",r);
+  int p;
+  fscanf(f,"%d",&p);
+  return p;
+}
+

@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.lang.String;
 import java.io.File;
+import java.lang.Math;
+
 
 class Fichier{
     private String _nom;
@@ -25,7 +27,8 @@ class Fichier{
 	_taille       = taille ;
 	_taille_piece = taille_piece ;
 		
-	int l = ((int)taille)/taille_piece +1 ; // à modif
+	int l = (int) Math.ceil( ((double)taille) / taille_piece);
+
 	_masque = new boolean[l] ;
 	for (int i=0; i<_masque.length ; i++){
 	    _masque[i] = false;
@@ -40,6 +43,18 @@ class Fichier{
     
     public void setMasque(boolean[] buffer) { _masque = buffer.clone(); }
     public void setTaillePiece(int taillePieces) { _taille_piece = taillePieces; }
+    public void setTaille(int taille) { _taille = taille; }
+    
+    public boolean isIncomplet() { return (!this.isComplet()); }
+    public boolean isComplet(){
+	for (int i=0; i<_masque.length ; i++){
+	    if (!_masque[i])
+		return false; 
+	}
+	return true;
+    }
+    
+    
 
     public void saveValue(){
 	try{
@@ -53,7 +68,8 @@ class Fichier{
 	    fileHidden.write('\n');
 	    
 	    // Sauver la taille de découpage de la pièce
-	    fileHidden.writeBytes(""+_taille_piece);
+	    fileHidden.writeBytes(_taille_piece+"\n");
+	    fileHidden.writeBytes(_taille+"\n");
 	    	    
 	    fileHidden.close();
 	}

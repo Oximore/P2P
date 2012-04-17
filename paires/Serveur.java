@@ -1,8 +1,8 @@
-/*  Serveur.java
- *  Blux
- *  21/02/12
+/* Serveur.java
+ * Blux
+ * 21/02/12
  *
- *  Thread 2 : Socket serveur
+ * Thread 2 : Socket serveur
  */
 
 import java.net.Socket;
@@ -11,21 +11,28 @@ import java.io.IOException;
 import java.lang.String;
 import java.util.Hashtable;
 
+
 public class Serveur extends Thread {
     
     private Hashtable _hash;
-    private int _connexions_max;
-    private int _tmp_refresh;
-    private String _ip_tracker;
-    private int _port_tracker;
+    private FichierConfiguration _fichierConf;
+    private int _localPort;
+    
+    // private int _connexions_max;
+    // private int _tmp_refresh;
+    // private String _ip_tracker;
+    // private int _port_tracker;
 
-    public Serveur(String name, Hashtable hash, String ip, int port, int tmp_refresh, int connexions_max){
+    // @localPort : 0 pour ne pas choisir
+    public Serveur(String name, Hashtable hash, FichierConfiguration fichierConf, int localPort) { //String ip, int port, int tmp_refresh, int connexions_max){
 	super(name);
 	_hash = hash;
-	_connexions_max = connexions_max;
-	_tmp_refresh    = tmp_refresh;
-	_ip_tracker     = ip;  
-	_port_tracker   = port;
+	_fichierConf = fichierConf;
+	_localPort = localPort;
+	// _connexions_max = connexions_max;
+	// _tmp_refresh = tmp_refresh;
+	// _ip_tracker = ip;
+	// _port_tracker = port;
     }
 
     
@@ -33,16 +40,17 @@ public class Serveur extends Thread {
 	System.out.println("Début serveur");
 	try {
 	    // Sélectionne un port libre ? entre "60000" et "60025"
-	    ServerSocket serveur = new ServerSocket(); // (60022);
+	    ServerSocket serveur = new ServerSocket(_localPort); // (60022);
 	    serveur.setSoTimeout(1000);
+	    System.out.println("Mon port d'écoute est : " + serveur.getLocalPort());
 
 	    // Lancement du Thread 3
-	    MiseAJour maj = new MiseAJour("Thread 3", _hash,  _ip_tracker, _port_tracker, serveur.getLocalPort(), _tmp_refresh);
-	    maj.start();	    
-	    
+	    MiseAJour maj = new MiseAJour("Thread 3", _hash, _fichierConf.getIp(), _fichierConf.getPort(), serveur.getLocalPort(), _fichierConf.getTmp());
+	    maj.start();
+
 	    while (true){
+		//System.out.println(".");
 		attendre(serveur);
-		System.out.println(".");
 	    }
 	}
 	catch (IOException ioe) {
@@ -52,8 +60,7 @@ public class Serveur extends Thread {
     }
 
 
-
-    public static int attendre(ServerSocket serv){
+    public int attendre(ServerSocket serv){
 	try{
 	    Socket s = serv.accept();
 	    System.out.println("Demande de connexion");

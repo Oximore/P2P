@@ -4,102 +4,70 @@
  *
  *  Pour tester
  */
-
+import java.net.Socket;
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.lang.Character;
+import java.lang.String;
+import java.net.SocketException;
 import java.util.Hashtable;
 import java.io.RandomAccessFile;
 import java.io.IOException;
-import java.lang.String;
-//import java.lang.Character;
 import java.io.File;
+import java.net.ServerSocket;
+
 
 public class Test{
     
     public static void main(String[] args){
 	System.out.println("Essais");
-	
+	try {
+	    // Sélectionne un port libre ? entre "60000" et "60025"
+	    ServerSocket serveur = new ServerSocket(55555); // (60022);
+	    serveur.setSoTimeout(1000);
 
-	/*
-	  FileHashSum test = new FileHashSum();
-	  
-	  File f1 = new File("toto.txt");
-	  File f2 = new File("tata.txt");
-	  String sum1 = FileHashSum.sha1sum(f1);
-	  String sum2 = FileHashSum.sha1sum(f2);
-	  
-	  System.out.println("1: " + sum1);
-	  System.out.println("2: " + sum2);
-	  System.out.println("3: " + FileHashSum.compareSha1sum(f1,sum1));
-	  System.out.println("4: " + FileHashSum.compareSha1sum(f1,sum2));
-	  System.out.println("5: " + FileHashSum.compareMd5sum(f1,FileHashSum.md5sum(f2)));
-	*/  
-	
-	
-	//Fichier fichier = new Fichier("screu",424242,42000,42);
-	//fichier.saveValue();
-	/*
-	  try{
-	    
-	    File repertoire = new File("Download");
-	    System.out.println ( repertoire.getAbsolutePath());
-	    //f.close();
-	    if ( repertoire.isDirectory() ) {
-                File[] list = repertoire.listFiles();
-                if (list != null){
-		    for ( int i = 0; i < list.length; i++) {
-			// Appel récursif sur les sous-répertoires
-			//			listeRepertoire( list[i]);
-			System.out.println ( list[i].getName());
-		    } 
-                } else {
-		    System.err.println(repertoire + " : Erreur de lecture.");
-                }
-	    } 
-	    
-	    RandomAccessFile file = new RandomAccessFile("Fichier.txt","rw");
-	    
-	    int b;
-	    b = file.read();
-	    while (b != -1){
-		System.out.print((char)b);
-		b = file.read();
-	    }	
-	    
-	    
-	    
-	    file.close();
+	    while (true){
+		System.out.println(".");
+		attendre(serveur);
+	    }
 	}
-	catch(IOException e){
-	    e.printStackTrace();
-	}	
-	*/	
-	
-	Hashtable h = new Hashtable(30,(float)0.6);
-	
-	//	put(Object key, Object value) 
-	Object i;
-	
-	i = h.put("one", new Integer(42));
-	if (i != null)
-	    System.out.println("i n'est pas nul");
-	i = h.put("two", new Integer(2));
-	if (i != null)
-	    System.out.println("i n'est pas nul");
-	i = h.put("three", new Integer(3));
-	if (i != null)
-	    System.out.println("i n'est pas nul");
+	catch (IOException ioe) {
+	    System.err.println("[Cannot initialize Server]\n" + ioe);
+	    System.exit(1);
+	}
+    }
+    
 
-	i = h.put("one", new Integer(1));
-	if (i != null)
-	    System.out.println("*i n'est pas nul : " + i);
-	
-	
-	Integer n = (Integer)h.get("two");
-	if (n != null) {
-	    System.out.println("two = " + n);
+    public static int attendre(ServerSocket serv){
+	try{
+	    Socket s = serv.accept();
+	    System.out.println("Demande de connexion");
+	    
+	    InputStream in   = s.getInputStream();  // aviable-close-read-skip
+	    OutputStream out = s.getOutputStream(); // close-flush-write
+	    
+	    byte[] b = new byte[1000];
+	    int res;
+	    String string;
+	    while (true){
+		res = in.read(b);
+		string = new String(b);
+		// Si end of stream
+		if (res == -1){
+		    //levé d'exception 
+		    throw new SocketException("connection interrompue"); 
+		} else {
+		    System.out.println(string);
+		}
+	    }
 	}
-	
-	
+	catch(IOException e){ 
+	    //System.out.println("IOE exception in attendre :" + e);
+	    return 1;
+	}
     }
     
 }
+
 
