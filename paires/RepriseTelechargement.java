@@ -56,6 +56,15 @@ public class RepriseTelechargement extends Thread {
 	    ta = new TelechargementAutomatique(file.getName(), _fichierConf, _hash, tabKey[i]);
 	    ta.start();
 	    // nbConnexionRestantes --;
-	}
+	}	
+	sauver(_hash);
     }
+
+    private void sauver(Hashtable hash){
+	System.out.println("Sauvegarde des fichiers cachés");    
+	Enumeration e  = hash.elements();
+	while (e.hasMoreElements())
+	    ((Fichier) e.nextElement()).saveValue();
+    }
+    
 }

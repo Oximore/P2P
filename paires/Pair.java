@@ -35,12 +35,15 @@ public class Pair{
 	// *TODO* filtrer les fichiers cachés   
 	// use :"File[] listFiles(FileFilter filter)" 
 	File[] list = repertoire.listFiles();
-	Hashtable collection = new Hashtable(2*list.length, (float)0.75);
+
+	//Hashtable collection = new Hashtable(2*list.length, (float)0.75);
+	Hashtable<String,Fichier> collection = new Hashtable<String,Fichier> (2*list.length, (float)0.75);
 	
 	for ( int i = 0; i < list.length ; i++) {
 	    // si ce n'est pas un fichier caché
-	    if ( list[i].exists() & list[i].getName().indexOf(".") > 0 ) {
+	    if ( list[i].exists() & list[i].getName().indexOf(".") != 0 ) {
 		remplire(list[i], collection, fichierConf.getTaille());
+		System.out.println(list[i].getName());
 	    }
 	}
 
@@ -75,7 +78,7 @@ public class Pair{
     }
     
     
-    static  void sauver(Hashtable hash){
+    static private void sauver(Hashtable hash){
 	System.out.println("Sauvegarde des fichiers cachés");    
 	Enumeration e  = hash.elements();
 	while (e.hasMoreElements())

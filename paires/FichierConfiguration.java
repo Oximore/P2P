@@ -20,7 +20,7 @@ class FichierConfiguration{
     private int _taille;
     private int _tmp_refresh;
 
-    FichierConfiguration(String fileName){
+    public FichierConfiguration(String fileName){
 	try {
 	    RandomAccessFile file = new RandomAccessFile(fileName,"r");
 	    

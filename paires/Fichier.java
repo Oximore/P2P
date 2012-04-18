@@ -21,7 +21,7 @@ class Fichier{
     
     static private String _directory = "Download/";
     
-    Fichier(String nomFichier, String key, long taille, int taille_piece){
+    public Fichier(String nomFichier, String key, long taille, int taille_piece){
 	_nom          = nomFichier ;
 	_key          = key ;
 	_taille       = taille ;

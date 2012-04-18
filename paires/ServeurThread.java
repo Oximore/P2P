@@ -35,9 +35,6 @@ public class ServeurThread extends Thread {
 	    InputStream in = _socket.getInputStream(); // aviable-close-read-skip
 	    OutputStream out = _socket.getOutputStream(); // close-flush-write
 	    
-	    /**********************************/
-	    
-
 	    boolean fin = false;
 	    String question = "", reponse = "", key = "", pieces = "";
 	    byte[] b = {0};
@@ -50,7 +47,7 @@ public class ServeurThread extends Thread {
 	    while (res != -1){
 		b[0] = (byte)res; 
 		question += new String(b);
-		System.out.println("<< " + question);
+		//		System.out.println("<< " + question);
 		// Si on a un espace on vérifie la conformité de l'expression
 		if (question.length()-1 == question.indexOf(" ", question.length()-1)){
 		    // Si le mot est reconnu
@@ -64,7 +61,7 @@ public class ServeurThread extends Thread {
 			    // Protocole : "interested $key"
 			    // "have $key $buffermap" (<- séquence de bit !)
 			    //System.out.println("4");
-			    System.out.println("<< " + question + key + "???");
+			    System.out.println("<< " + question + key);
 			    actionInterested(key, out);	    
 			}
 			
@@ -95,7 +92,7 @@ public class ServeurThread extends Thread {
 	    in.close(); out.close(); _socket.close();
 	}
 	catch(SocketException se){
-	    System.out.println("Perte de la connexion avec la pair : " + _socket.getInetAddress() + "/" + _socket.getPort() );
+	    System.out.println("Perte de la connexion avec le pair : " + _socket.getInetAddress() + " " + _socket.getPort() );
 	    
 	} catch(IOException e){
 	    System.out.println("ioe exception in ServeurThread: " + e );
@@ -143,9 +140,7 @@ public class ServeurThread extends Thread {
     
 
     private void actionInterested (String key, OutputStream out) throws IOException {
-	System.out.println("attention ...");
 	Object o = _hash.get(key);
-	System.out.println("on y est !!");
 	if (o != null){
 	    Fichier f = (Fichier)o;
 	    System.out.println("On me demande mon fichier " + key);
@@ -198,7 +193,7 @@ public class ServeurThread extends Thread {
 		    retour = file.read(lecteur);
 		}
 		reponsePartielle += id + ":" + new String(lecteur) + " ";
-
+		
 	    }
 	    
 	    reponse += reponsePartielle.trim() + "]";

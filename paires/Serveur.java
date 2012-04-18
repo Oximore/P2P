@@ -60,7 +60,7 @@ public class Serveur extends Thread {
     }
 
 
-    public int attendre(ServerSocket serv){
+    private int attendre(ServerSocket serv){
 	try{
 	    Socket s = serv.accept();
 	    System.out.println("Demande de connexion");

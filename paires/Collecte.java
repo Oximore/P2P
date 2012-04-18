@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class Collecte{
     private InfoPair [] _tab;
     
-    Collecte(String infos){
+    public Collecte(String infos){
 	String info[] = infos.substring(1+infos.indexOf("["),infos.indexOf("]")).split(" ");
 	_tab = new InfoPair[(int)(info.length / 4)];
 	for (int i=0; i<info.length ; i+=4){
