@@ -17,11 +17,12 @@ void remplit_announce(struct base* base,char* s);
 
 void remplit_keys(char* s);
 char* fusion_keys_string(char* seed, char* leech);
-struct base* keys_string_to_base(char* keys);
+struct base* keys_string_to_base(char* keys);//obsolete
+//struct file_list* keys_string_to_file_list(char* keys);
 void remplit_file(char* filename, int length, int piece_size, char* key);
+
+
+
 int compte_crochet_fermant(char* buf);
-
-
-
 
 #endif

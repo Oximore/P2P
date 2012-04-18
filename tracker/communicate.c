@@ -11,15 +11,17 @@
 #define IDLE_TIME // en secondes
 
 ulong ip;
-struct peer* p;
-struct base* base;
+struct peer* peer = NULL;
+struct file_list* file_list = NULL;
+struct peer_list* peer_list = NULL;
 
 int communicate(struct donnees* donnees)
 {
   ip = donnees->client->sockaddr->sin_addr.s_addr;
-  p = trouve_peer(donnees->peer_list, ip);
-  base = donnees->base;
-  
+  p = find_peer(donnees->peer_list, ip);
+  file_list = donnees->file_list;
+  peer_list = donnees->peer_list;
+
   char* recv_buffer= malloc(sizeof(char)*RECV_BUF_SIZE);
   
   char* s1 = NULL;
@@ -54,10 +56,10 @@ int communicate(struct donnees* donnees)
 	      sscanf(recv_buffer,"%s %s %d %s [%s] %s [%s]",s1, s2, &port, s3, s4, s5, s6);
 	      if(strcmp(s1,"announce")==0 && strcmp(s2,"listen")==0 && strcmp(s3,"seed")==0 && strcmp(s5,"leech")==0)
 		{
-		  if(p == NULL)
+		  if(peer == NULL)
 		    {
-		      peer_list_add(donnees->peer_list , ip, port, NULL);//à checker
-		      p=find_peer(donnees->peer_list, ip);// idem
+		      peer = peer_init(ip, port, file_list_init());
+		      peer_list_add(peer_list, file_list, peer);
 		    }
 		  while(s4 != '\0')
 		    {
@@ -65,7 +67,8 @@ int communicate(struct donnees* donnees)
 		      //remplit_file(s1, length, piece_size, s2); // A faire
 		      
 		    }
-		  //remplit_keys(s6);
+		  //l=keys_string_to_file_list(s6);
+		  //update_add(l);
 		  write_client(donnees->client->sock, "ok");
 		}
 	      break;
@@ -77,7 +80,7 @@ int communicate(struct donnees* donnees)
 		  sscanf(recv_buffer,"%s %s [%s] %s [%s]",s1 ,s2, s3, s4, s5);
 		  if(strcmp(s1,"update")==0 && strcmp(s2,"seed")==0 && strcmp(s4,"leech")==0)
 		    {
-		      if(p==NULL){end(donnees->client, donnees->ct); return 0;}//ferme la socket
+		      if(peer==NULL){end(donnees->client, donnees->ct); return 0;}//ferme la socket
 		      else
 			{ 
 			  char* res=fusion_keys_string(s3, s5);
@@ -193,34 +196,47 @@ char* fusion_keys_string(char* seed, char* leech)
  return res;
 }
 
-struct base* keys_string_to_base(char* keys)
+struct file_list* keys_string_to_file_list(char* keys)
+//cree une liste temporaire de file pour le update
 {
   
-  struct base* new_base=base_init();
-  char* s=malloc(sizeof(char)*50);//taille de cle<50 ???
+  struct file_list* new_file_list=file_list_init();
+  char **tab;
+  tab[0]=malloc(sizeof(char)*50);//taille de cle<50 ???
+  int k=0; 
   int i=0;
   int j=0;
+  int l;
   while(keys[i]!='\0')
     {
       if(keys[i]==' ') 
 	{
-	  s[j]='\0';
-	  struct element* e=element_init(s,NULL,0,0,NULL);	  
-	  base_add(new_base, e);
+	  tab[k][j]='\0';
+	  tab[k]=malloc(sizeof(char)*50);
+	 
+
 	  j=-1;
 	}
       else
 	{
-	  s[j]=keys[i];
+	  tab[k][j]=keys[i];
 	}
       j++;
       i++;
     }
-  s[j]='\0';
-  struct element* e=element_init(s,NULL,0,0,NULL);	  
-  base_add(new_base, e);
-  return new_base;
-  
+  tab[k][j]='\0';
+  //si la cle n'existe pas on l'add
+
+  for(l=0;l<k;l++)
+    {
+      if(find_file(file_list, tab[k])!=NULL)
+	{
+	  struct file* f=file_init(tab[k],NULL,0,0,NULL);
+	  file_list_add(NULL, new_file_list, f);
+	}
+      else free(tab[l]);
+    }
+      return new_file_list;
 }
 
 void remplit_file(char* filename, int length, int piece_size, char* key)
