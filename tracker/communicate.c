@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "communicate.h"
 #include <time.h>
-#include "base.h"
+#include "structure.h"
 #include "interface.h"
 #include <string.h>
 
@@ -144,12 +144,29 @@ void end(struct client* client, struct client_tab* ct)
 
 void update_diff(struct file_list* new, struct file_list* old, struct file_list* file_list, struct peer* peer)
 {
-  struct file_list* f_add=copy(new);
-  struct file_list* f_delete= copy(old);
+  struct file_list* f_add=file_list_copy(new);
+  struct file_list* f_delete=file_list_copy(old);
   //le diff
-
-  update_add(file_list, peer, f_add);
-  update_delete(file_list, peer, f_delete);
+  if(f_add->first == NULL) update_delete(f_delete);
+  else 
+    {
+      struct file* aux_file=f_add->first;
+      struct aux_file2=NULL;      
+      while(aux_file!=NULL)
+	{
+	  aux_file2=find_file(f_delete, aux_file->key);
+	  if(aux_file2!=NULL)
+	    {
+	      file_list_file_delete(NULL, f_delete, aux_file->key);
+	      aux_file2=aux_file;
+	      aux_file=aux_file->next;
+	      file_list_file_delete(NULL, f_add, aux_file2->key);
+	    }
+	  else aux_file=aux_file->next;
+	}
+      update_add(file_list, peer, f_add);
+      update_delete(file_list, peer, f_delete);
+    }  
   file_list_delete(f_add);
   file_list_delete(f_delete);
 }
