@@ -46,7 +46,7 @@ struct file * file_delete(struct file *,struct peer_list *);//enleve les pointer
 struct file_list * file_list_init();//init une file_list
 void file_list_delete(struct file_list *);//delete une file_list
 void file_list_add(struct file_list *, struct file *);//add un file à la file_list
-void file_list_file_delete(struct peer_list *,struct file_list *,struct file *);//delete le file désigné par son ip
+void file_list_file_delete(struct peer_list *,struct file_list *,char *);//delete le file désigné par son ip
 struct file * find_file(struct file_list *,char *);//trouve le file avec sa clé
 int get_peer(struct peer_list *, struct peer *);//enleve un peer d'une peer_list (ne touche pas à la file_list!)
 int get_file(struct file_list *, struct file *);//enleve un file d'une file_list (ne touche pas à la peer_list!)
@@ -54,10 +54,11 @@ void delete_peer_pointer(struct peer *, struct file_list *);// enleve p de ttes 
 void delete_file_pointer(struct file *, struct peer_list *);// enleve f de ttes les file_list de p : utilise get_file
 int add_link(struct file *,struct peer *);//Ajoute le fichier f dans la liste de peer qui correspont a ceux equivalent a la liste de peer pointee par le fichier
 
-//void add_peer_pointer(const struct peer *, struct file_list *);
-//fct update à faire!! si liste vide, la créer
-
 int update_add(struct file_list *,struct peer *,struct file_list *);
 int update_delete(struct file_list *, struct peer *,struct file_list *);
 int delete_link(struct file *, struct peer *);
+struct file_list * file_list_copy(struct file_list *);
+void print_file_list(struct file_list * , int);
+void print_peer_list(struct peer_list * , int);
+void print_data(struct file_list *,struct peer_list *);
 #endif

@@ -1,12 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include "communicate.h"
 #include "interface.h"
-#include "list.h"
-#include "base.h"
-
+#include "communicate.h"
 
 int com(struct donnees * d)
 {
@@ -40,7 +33,7 @@ void server(struct donnees * d)
 	      exit(errno);
 	    }
 	  d->client = c;
-	  int p = pthread_create(c->t,NULL,(void *(*)(void *))&com, (void *)d);
+	  int p = pthread_create(c->t,NULL,(void *(*)(void *))&communicate, (void *)d);
 	  if(p != 0)
 	    {
 	      perror("pthread_create()");
@@ -152,8 +145,8 @@ struct donnees * donnees_init()
   struct donnees * d = malloc(sizeof(struct donnees));
   d->ct = client_tab_init();
   d->client = NULL;
-  d->peer_list = list_init();
-  d->base = base_init();
+  d->peer_list = peer_list_init();
+  d->file_list = file_list_init();
   d->sock=0;
   d->sockaddr=NULL;
   return d;

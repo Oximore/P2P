@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "base.h"
-#include "list.h"
+#include "structure.h"
 #include "interface.h"
 
 
 
 int main()
 {
+  /*
   struct list * l = list_init();
   list_add(l,12,1024);
   list_add(l,13,1024);
@@ -26,7 +26,9 @@ int main()
       p=p->next;
     }
   list_delete(l);
-  
-  server(donnees_init());
+  */
+  struct donnees* donnees=donnees_init();
+  server(donnees);  
+//server(donnees_init());
   return EXIT_SUCCESS;
 }
