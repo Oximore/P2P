@@ -32,8 +32,8 @@ public class ServeurThread extends Thread {
     public void run(){
 	try{
 	    System.out.println("Connexion au pair : " + _socket.getInetAddress() + "/" + _socket.getPort() );
-	    InputStream in = _socket.getInputStream(); // aviable-close-read-skip
-	    OutputStream out = _socket.getOutputStream(); // close-flush-write
+	    InputStream in = _socket.getInputStream();    // read-close-skip
+	    OutputStream out = _socket.getOutputStream(); // write-close-flush
 	    
 	    boolean fin = false;
 	    String question = "", reponse = "", key = "", pieces = "";
@@ -47,36 +47,29 @@ public class ServeurThread extends Thread {
 	    while (res != -1){
 		b[0] = (byte)res; 
 		question += new String(b);
-		//		System.out.println("<< " + question);
 		// Si on a un espace on vérifie la conformité de l'expression
 		if (question.length()-1 == question.indexOf(" ", question.length()-1)){
 		    // Si le mot est reconnu
 		    System.out.println("1: "  + question.indexOf("interested"));
 		    if (0 == question.indexOf("interested") || 0 == question.indexOf("getpieces")){
-			//System.out.println("2");
 			key = lectureKey(in);
-			//System.out.println("3");
-			// Si c'est une action interessted alors ..	
+			
 			if (0 == question.indexOf("interested")){
 			    // Protocole : "interested $key"
-			    // "have $key $buffermap" (<- séquence de bit !)
-			    //System.out.println("4");
+			    // "have $key $buffermap" 
 			    System.out.println("<< " + question + key);
 			    actionInterested(key, out);	    
 			}
 			
-			// Sinon c'est une action getPieces
 			else if (0 == question.indexOf("getpieces")){
 			    // Protocole : "getpieces $key [$index1 $index2 $index3]"
 			    // "data $key [$index1:$piece1 $index2:$piece2 $index3:$piece3]"
-			    //System.out.println("3");
 			    pieces = lecturePieces(in);
 			    System.out.println("<< " + question + key + " " + pieces);
 			    try {
 				actionGetpiece (key, pieces, out);
 			    } catch(IOException e){
 				System.out.println("Erreur de lecture du fichier demandé : " + key );
-				// envoyer de la merde ..
 			    }
 			}
 		    }
@@ -110,12 +103,10 @@ public class ServeurThread extends Thread {
 	while (res != -1){
 	    b[0] = (byte)res; 
 	    key += new String(b);
-	    //System.out.println("key en cours :" + key);
 	    if (key.length()-1 == key.indexOf(" ", key.length()-1))
 		res = -1;
 	    else
 		res = in.read();
-	    //	    System.out.println("12");
 	}
 	return key.trim();
     }
@@ -190,7 +181,7 @@ public class ServeurThread extends Thread {
 
 	    for ( i=0 ; i<index.length ; i++){
 		// Si on a bien le i-ème index dans notre Buffermap
-		int id = Integer.parseInt(index[i]); // *TODO* vérif
+		int id = Integer.parseInt(index[i]);
 		if (masque[id]){
 		    // on ouvre le fichier dont on extrait les données
 		    RandomAccessFile file = new RandomAccessFile("Download/" + f.getName(), "r");
