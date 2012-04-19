@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <string.h>
 #include "structure.h"
-//#include "communicate.h"
+
 
 
 #define MAX 20

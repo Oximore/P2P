@@ -28,6 +28,11 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
     }
     
     public void run(){
+	// Pour ne pas surcharger out 
+	try{Thread.sleep(100);}
+	catch(InterruptedException ite){ 
+	    ite.printStackTrace(); 
+	}		
 	System.out.println("Bienvenue dans le programme utilisateur !");
 	Scanner scan = new Scanner(System.in);
 	String question = "", reponse = "" , compteur = "";
@@ -50,7 +55,6 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 	    }
 	    if (ret == 0){
 		// On quitte ce thread
-		System.out.println("Bye bye !");
 		return ;
 	    }
 	    try {
@@ -78,14 +82,19 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 
 		//  *TODO*
 		while (! (0<=resultat && resultat <= co.getTab().length+1)){ 
-		    System.out.println("Voici les fichiers correspondant à vos critères de recherche:");
-		    for (i=0; i<co.getTab().length ; i++)
-			System.out.println((1+i) + ":\t" + co.getTab()[i]);
-		    System.out.println("Tapez 'n' pour commencer le téléchargement ou '0' pour annuler.");
-		
-		    while (!scan.hasNextInt())
-			compteur = scan.next();
-		    resultat = scan.nextInt();
+		    if (co.getTab().length < 1) {
+			System.out.println("Voici les fichiers correspondant à vos critères de recherche:");
+			for (i=0; i<co.getTab().length ; i++)
+			    System.out.println((1+i) + ":\t" + co.getTab()[i]);
+			System.out.println("Tapez 'n' pour commencer le téléchargement ou '0' pour annuler.");
+			
+			while (!scan.hasNextInt())
+			    compteur = scan.next();
+			resultat = scan.nextInt();
+		    }
+		    else
+			resultat = 0;
+		    
 		}
 		if (resultat != 0){
 		    resultat--;
@@ -132,6 +141,7 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 		    System.out.println("Fichier téléchargé");
 		}
 		resultat = -1;
+		
 	    } catch (UnknownServiceException se) {
 		System.out.println("Un serveur n'as pas pu être trouvé : " + se);
 		se.printStackTrace();

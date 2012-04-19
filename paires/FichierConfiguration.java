@@ -5,8 +5,6 @@
  *  Sert à communiquer avec le fichier de configuration
  */
 
-//package noeud;
-
 import java.io.RandomAccessFile;
 import java.io.IOException;
 import java.lang.String;
@@ -35,15 +33,14 @@ class FichierConfiguration{
 	    System.out.println("ioe in FichierConfiguration" + e);
 	    e.printStackTrace();
 	}
-	//finally{ file.close();}
     }
 
 
-    public int    getPort() { return _port; }
-    public String getIp() { return _ip; }
+    public int    getPort()        { return _port; }
+    public String getIp()          { return _ip; }
     public int    getNbConnexion() { return _nb_connexion; }
-    public int    getTmp() { return _tmp_refresh; }
-    public int    getTaille() { return _taille; }
+    public int    getTmp()         { return _tmp_refresh; }
+    public int    getTaille()      { return _taille; }
     
     public void setNbConnexion(int nb){
 	if (nb<0) throw new IllegalArgumentException("nombre de connexion négatif");
@@ -70,7 +67,6 @@ class FichierConfiguration{
 	catch(IOException e){ 
 	    System.out.println("ioe exception in saveValues : " + e) ; 
 	}
-	//	finally{ file.close(); }
     }
 
 
@@ -88,7 +84,7 @@ class FichierConfiguration{
 	    }
 	    s = f.readLine();
 	}
-	// levée d'exception
+	// levée d'exception ?
 	return "";
     }
 

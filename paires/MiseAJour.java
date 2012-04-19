@@ -55,7 +55,9 @@ public class MiseAJour extends Thread {
 	    System.out.println("Déconnexion in MiseAJour");
 	    while (true) {
 		try{Thread.sleep(_tmp * 60 * 1000);}
-		catch(InterruptedException ite){}		
+		catch(InterruptedException ite){
+		    ite.printStackTrace();
+		}		
 		
 		// Création d'une nouvelle connexion au serveur
 		listeFichiers = fichiersPresents(false);
@@ -69,7 +71,11 @@ public class MiseAJour extends Thread {
 		out = socket.getOutputStream();
 		
 		out.write(("update " + listeFichiers).getBytes());
+<<<<< HEAD
 		System.out.println(">> " + "update " + listeFichiers);
+=======
+		System.out.println(">> update " + listeFichiers);
+>>>>>>> 1c6852c975f2c37ca95939e82042cdf854ceea34
 		out.flush();
 		waitOk(in);
 		
@@ -77,11 +83,10 @@ public class MiseAJour extends Thread {
 		System.out.println("Déconnexion in MiseAJour");
 	    }
 	} catch (IOException ioe) {
-	    // modifier ce truc *TODO*
-	    System.out.println("IOE exception in MiseAJour : "+ioe);
+	    System.out.println("IOE exception in MiseAJour : " + ioe);
+	    //ioe.printStackTrace();
 	    return ;
 	}
-	//	System.out.println("Fin Mise à Jour");
     }
 
     // bool == true => afficher tous les éléments
@@ -99,8 +104,7 @@ public class MiseAJour extends Thread {
 		enCours += file.getName() + " "
 		    + file.getTaille() + " "
 		    + file.getTaillePiece() + " ";
-	    enCours += 
-		file.getKey() + " ";
+	    enCours += file.getKey() + " ";
 	    if (file.isComplet())
 		seed += enCours;
 	    else leech += enCours;

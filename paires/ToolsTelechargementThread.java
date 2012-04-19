@@ -49,15 +49,13 @@ public class ToolsTelechargementThread extends Thread {
 		throw new CharConversionException("réponse inapropriée :\n>> " + question + "\n<< " + reponse);
 	    	    
 	    masque = reponse.split(" ")[2];
-	    //System.out.println("Masque :" + masque +"!");
+	    
 	    if (i == 0) {
 		tabMasque  = new boolean[info.length][masque.length()];
-		// initialisation inutile ???
 		for ( j=0 ; j<tabMasque.length ; j++)
 		    for ( k=0 ; k<tabMasque[0].length ; k++)
 			tabMasque[j][k] = false;
 	    }
-	    //	    for ( j=0 ; j<masque.length()-1 ; j++){
 	    for ( j=0 ; j<masque.length() ; j++){
 		if (j == masque.indexOf("0", j))
 		    tabMasque[i][j] = false;
@@ -66,21 +64,16 @@ public class ToolsTelechargementThread extends Thread {
 		else 
 		    throw new CharConversionException("masque mal formé");
 	    }
-	    // for ( j=0 ; j<tabMasque[0].length ; j++)
-	    // 	if (tabMasque[i][j])
-	    // 	    System.out.print(1);
-	    // 	else System.out.print(0);
-	    // System.out.println("!!!!");
 	}
 	return tabMasque;
     }
 	
 	    
     // *TODO* check ici si le fichier existe : @key -> @Fichier
-    // *TODO* télécharger 10 par 10 plutôt :x
+    // *TODO* télécharger par combien ?
     void telecharger(String ip, int port, String key, boolean [] masque) throws UnknownServiceException, CharConversionException {
 	int i = 0 , max;
-	String reponse = "", question = "";// key_tmp = "";
+	String reponse = "", question = "";
 	List<String[]> reponse_partielle;
 	boolean bool;
 	
@@ -118,27 +111,19 @@ public class ToolsTelechargementThread extends Thread {
 	}
     }
     
-    //longeur = _fichierConf.getTaille();
     static void enregistre(Fichier f, List<String[]> infos){ // String [][] infos){
 	System.out.println("fonction enregistre");
-	//String [][] tab = new String[infos.length][2];
 	int indice;
 	boolean [] masque  = f.getMasque();
-	 
-	//	for (int i=0 ; i<infos.length ; i++)
-	//   infos[i] = infos[i].split(":"); 
-	// TODO améliorée : le premier ':' !
 
 	if (f != null){
 	    // *TODO* ressérer le try pour enregistrer le masque en partie ?
 	    try{
 		RandomAccessFile file = new RandomAccessFile("Download/"+f.getName(), "rw");
 		for (int i=0 ; i<infos.size() ; i++){
-		    //System.out.println("indice : " + infos[i][0]);
 		    indice = Integer.parseInt(infos.get(i)[0]);
 		    file.seek(indice*f.getTaillePiece());
 		    file.writeBytes(infos.get(i)[1]);
-		    //file.write(infos[i][1].getBytes());
 		    masque[indice] = true;
 		}
 		file.close();
@@ -177,7 +162,7 @@ public class ToolsTelechargementThread extends Thread {
 	    }
 	}
 	if (tmp <= nbIteration)
-	    throw new UnknownServiceException(ip + "/" + port);
+	    throw new UnknownServiceException(ip + " " + port);
 	    
 	return reponse;
     }	
@@ -197,7 +182,7 @@ public class ToolsTelechargementThread extends Thread {
 	byte[] b = {0};
 	int res, compteur = 0;
 	res = in.read();
-	// on laisse un peu de temps pour réceptioner toutes les données (??)
+	// on laisse un peu de temps pour réceptioner toutes les données
 	try{Thread.sleep(100);}
 	catch(InterruptedException ite){
 	    ite.printStackTrace();
@@ -207,7 +192,6 @@ public class ToolsTelechargementThread extends Thread {
 	    b[0] = (byte)res; 
 	    reponse += new String(b);
 
-	    // compte le nombre d'espace ou de crochets fermant // Et si on a un ']' dans le texte ? -.-"
 	    if (attCrochets){
 		if (reponse.length()-1 == reponse.indexOf("]", reponse.length()-1))
 		    res = -1;
@@ -228,8 +212,6 @@ public class ToolsTelechargementThread extends Thread {
 	return reponse;
     }
 
-    
-    // _fichierConf.getTaille()
     static List<String[]> demanderPiece(String ip, int port, String question, int nbIteration, int tmpAttente, int taille_totale) throws UnknownServiceException, CharConversionException {    
 	List<String[]> reponse = null;
 	int tmp = 0;
@@ -261,8 +243,7 @@ public class ToolsTelechargementThread extends Thread {
 	out.write(question.getBytes());
 	out.flush();
 	System.out.println(">> " + question);
-	String reponse = new String(""); // , indice = new String("");
-	//	String [][] reponse_partielle = new String[2][];
+	String reponse = new String(""); 
 	List<String[]> reponse_partielle = new ArrayList<String[]>();
 	
 	
@@ -270,12 +251,11 @@ public class ToolsTelechargementThread extends Thread {
 	byte[] piece = new byte[_fichierConf.getTaille()];
 	int res, compteur = 0;
 	int last_indice = (int) Math.floor( ((double)taille_totale) / _fichierConf.getTaille());
-	//	int last_taille = 
 	byte[] last_piece = new byte[taille_totale % _fichierConf.getTaille() ];
 	int i = 0;
 
 	res = in.read();
-	// on laisse un peu de temps pour réceptioner toutes les données (??)
+	// on laisse un peu de temps pour réceptioner toutes les données
 	try{Thread.sleep(100);}
 	catch(InterruptedException ite){
 	    ite.printStackTrace();
@@ -302,12 +282,8 @@ public class ToolsTelechargementThread extends Thread {
 	res = in.read(); 
 	while (res != -1) {
 	    // On initialise
-	    // System.out.println("i =" + i);
-	    
 	    reponse_partielle.add(i,new String[2]);
-
 	    // On lit l'indice
-	    //	    indice = "";
 	    reponse_partielle.get(i)[0] = new String("");
 	    while (res != -1 && '0'<=res && res<='9') {
 		b[0] = (byte)res; 
@@ -319,7 +295,6 @@ public class ToolsTelechargementThread extends Thread {
 	    if (res != ':')
 		throw new CharConversionException("message data erroné");
 	    // On lit la taille d'une pièce
-	    //	    System.out.println("last = " + last_indice + "|" + "indice = " + Integer.parseInt(reponse_partielle.get(i)[0]) );
 	    if (last_indice != Integer.parseInt(reponse_partielle.get(i)[0])){
 		res = in.read(piece); 		
 		reponse_partielle.get(i)[1] = new String(piece);
@@ -332,7 +307,6 @@ public class ToolsTelechargementThread extends Thread {
 	    }
 	    // On lit un espace ou un crochet
 	    res = in.read(); 
-	    //b[0] = (byte)res; 
 	    if (res != ' ' && res != ']')    
 		System.out.println("problème de lecture : '" + (char)res + "' ou " + res);
 		//throw new CharConversionException("message data erroné");
