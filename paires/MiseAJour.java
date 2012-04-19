@@ -46,12 +46,13 @@ public class MiseAJour extends Thread {
 	    
 	    String listeFichiers = fichiersPresents(true);
 	    out.write(("announce listen " + _port_serveur + " " + listeFichiers).getBytes());
+	    System.out.println(">> announce listen " + _port_serveur + " " + listeFichiers);
 	    out.flush();
 	    waitOk(in);
 
 	    // On ferme la connexion
 	    out.close(); in.close(); socket.close();
-	    	    
+	    System.out.println("Déconnexion in MiseAJour");
 	    while (true) {
 		try{Thread.sleep(_tmp * 60 * 1000);}
 		catch(InterruptedException ite){}		
@@ -61,7 +62,9 @@ public class MiseAJour extends Thread {
 		socket = new Socket(_ip, _port);
 		if (socket == null){
 		    System.out.println("Serveur not Found in MiseAJour");
-		    return ;}
+		    return ;
+		}
+		System.out.println("Connexion établie in MiseAJour");
 		in   = socket.getInputStream();
 		out = socket.getOutputStream();
 		
@@ -70,6 +73,7 @@ public class MiseAJour extends Thread {
 		waitOk(in);
 		
 		out.close(); in.close(); socket.close();
+		System.out.println("Déconnexion in MiseAJour");
 	    }
 	} catch (IOException ioe) {
 	    // modifier ce truc *TODO*
@@ -108,16 +112,17 @@ public class MiseAJour extends Thread {
         
     private void waitOk (InputStream in) throws IOException{
 	boolean ok = false;
-	int ret = (int) in.read();
+	char ret = (char) in.read();
 	while (!ok){
-	    while ('o' == ret)
-		ret = (int) in.read();
-	    ret = in.read();
-	    if (ret == 'k')
-		ok = true;
+	    if (ret == 'o') {
+		ret = (char) in.read();
+		if (ret == 'k')
+		    ok = true;
+	    }
+	    else
+		ret = (char) in.read();
 	}
-	//try{Thread.sleep(1000);}
-	//catch(InterruptedException ite){}		
+	System.out.println("<< ok");
     }
 }
 

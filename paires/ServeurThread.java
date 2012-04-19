@@ -178,11 +178,16 @@ public class ServeurThread extends Thread {
 	    int i;
 	    boolean[] masque = f.getMasque();
 	    
-
 	    String reponsePartielle = "";
-	    int taille_piece = f.getTaillePiece();
-	    byte lecteur[] = new byte[taille_piece];
+	    int taille_piece        = f.getTaillePiece();
+	    byte lecteur[]          = new byte[taille_piece];
 	    int retour;
+	    int last_indice         = (int) (f.getTaille()/f.getTaillePiece());
+	    int last_taille         = (int)f.getTaille() % f.getTaillePiece();
+	    byte [] last_lecteur       = new byte[last_taille]; 
+
+
+
 	    for ( i=0 ; i<index.length ; i++){
 		// Si on a bien le i-ème index dans notre Buffermap
 		int id = Integer.parseInt(index[i]); // *TODO* vérif
@@ -190,13 +195,18 @@ public class ServeurThread extends Thread {
 		    // on ouvre le fichier dont on extrait les données
 		    RandomAccessFile file = new RandomAccessFile("Download/" + f.getName(), "r");
 		    file.seek(id*taille_piece);
-		    retour = file.read(lecteur);
+		    if (id == last_indice) {
+			retour = file.read(last_lecteur);
+		    	reponsePartielle += id + ":" + new String(last_lecteur) + " ";
+		    } else {
+			retour = file.read(lecteur);
+			reponsePartielle += id + ":" + new String(lecteur) + " ";
+		    }
 		}
-		reponsePartielle += id + ":" + new String(lecteur) + " ";
-		
 	    }
 	    
-	    reponse += reponsePartielle.trim() + "]";
+	    System.out.println(reponsePartielle.length() +":'"+reponsePartielle +"'");
+	    reponse += reponsePartielle.substring(0,reponsePartielle.length() -1) + "]";
 	    System.out.println(">> " + reponse);
 	    out.write(reponse.getBytes());
 	    out.flush();
