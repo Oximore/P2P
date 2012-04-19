@@ -2,6 +2,24 @@
 
 int main()
 {
+  struct peer_list *pl = peer_list_init();
+  struct file_list *fl = file_list_init();
+  char * s = malloc(5*sizeof(char));
+  char * s2 = malloc(5*sizeof(char));
+  strcpy(s,"caca");
+  strcpy(s,"pipi");
+  struct peer * p = peer_init(192,1024);
+  struct file * f = file_init(s,s2,12,14);
+  peer_list_add(pl,p);
+  file_list_add(fl,f);
+  add_link(f,p);
+  //print_file_list(fl,1);
+  //print_peer_list(pl,1);
+  file_list_file_delete(pl,fl,f->key);
+  print_file_list(fl,1);
+  print_peer_list(pl,1);
+  
+  peer_list_peer_delete(pl,fl,p->ip_address);
   return 0;
 }
 
@@ -160,20 +178,20 @@ void file_list_add(struct file_list * b, struct file * e)
 }
 
 
-void file_list_file_delete(struct peer_list * pl,struct file_list * b,struct file * e)
+void file_list_file_delete(struct peer_list * pl,struct file_list * b,char * key)
 {
   if(b->first == NULL)
     return;
   if(b->first->next == NULL)
     {
-      if(strcmp(b->first->key,e->key)) 
+      if(strcmp(b->first->key,key)) 
 	return;
       file_delete(b->first,pl);
       return; 
     }
   
   struct file * p = b->first;
-  if(!strcmp(p->key,e->key))
+  if(!strcmp(p->key,key))
     {
       b->first = p->next;
       file_delete(p,pl);
@@ -181,7 +199,7 @@ void file_list_file_delete(struct peer_list * pl,struct file_list * b,struct fil
     }
   while(p->next!=NULL )
     {
-      if(!strcmp(p->next->key,e->key))
+      if(!strcmp(p->next->key,key))
 	{
 	  struct file * p2 = file_delete(p->next,pl);
 	  p->next=p2;
@@ -311,7 +329,7 @@ void delete_file_pointer(struct file * f, struct peer_list * p)
 
 int add_link(struct file *f, struct peer *p)
 {
-  if(NULL == f || NULL == f->peer_list->first)
+  if(NULL == f || NULL == p)
     return -1;
   if(p->file_list == NULL)
     p->file_list = file_list_init();
@@ -325,7 +343,7 @@ int add_link(struct file *f, struct peer *p)
 
 int delete_link(struct file *f, struct peer *p)
 {
-  if(NULL == f || NULL == f->peer_list->first)
+  if(NULL == f || NULL == p)
     return -1;
   if(p->file_list == NULL)
     p->file_list = file_list_init();
@@ -345,7 +363,8 @@ int update_add(struct file_list *fl,struct peer *p,struct file_list *f_add)
   struct file * tmp2 = find_file(fl,tmp->key);
   while(tmp!=NULL)
     {
-      add_link(tmp2,p);
+      if(tmp2!=NULL)
+	add_link(tmp2,p);
       tmp = tmp->next;
       tmp2 = find_file(fl,tmp->key);
     }
@@ -358,50 +377,35 @@ int update_delete(struct file_list *fl, struct peer *p,struct file_list * f_dele
   struct file * tmp2 = find_file(fl,tmp->key);
   while(tmp!=NULL)
     {
-      delete_link(tmp2,p);
+      if(tmp2!=NULL)
+	delete_link(tmp2,p);
       tmp = tmp->next;
       tmp2 = find_file(fl,tmp->key);
     }
   return 0; 
 }
 
-
-
-
-
-
-
-
-
-// Ajoute le fichier f dans la liste de peer qui correspont a ceux equivalent a la liste de peer pointee par le fichier
-// pas finie
-/*void add_file_pointer(const struct file *f, struct peer_list *p)
+void print_file_list(struct file_list * fl, int b)
 {
-  if(NULL == p || NULL == f)
-    return;
-  
-  //iteration sur les peers pointes par le fichier
-  while(NULL != f->peer_list->first->next)
-    {   
-      if(f->peer_list->first->ip_address != p->first->ip_address && NULL != p->first->next)
-	{
-	  p->first = p->first->next;
-	}
-
-      else if(f->peer_list->first->ip_address == p->first->ip_address)
-	{
-	  // si le fichier n'appartient pas a la peer_list, on l'ajoute
-	  if(strcmp(p->file_list->first->key, f->key))
-	    {
-	      p->
-	      f->peer_list->first = f->peer_list->first->next;
-	    }
-	  
-	  //on passe au peer suivant
-	  f->peer_list->first = f->peer_list->first->next;
-	}      
+  struct file * tmp = fl->first;
+  while(tmp!=NULL)
+    {
+      printf("file %s\n",tmp->key);
+      if(b)
+	print_peer_list(tmp->peer_list,0);
+      tmp=tmp->next;
     }
+}
 
-  return;
-}*/
 
+void print_peer_list(struct peer_list * pl, int b)
+{
+  struct peer * tmp = pl->first;
+  while(tmp!=NULL)
+    {
+      printf("peer %lu\n",tmp->ip_address);
+      if(b)
+	print_file_list(tmp->file_list,0);
+      tmp=tmp->next;
+    }
+}

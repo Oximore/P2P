@@ -46,7 +46,7 @@ struct file * file_delete(struct file *,struct peer_list *);//enleve les pointer
 struct file_list * file_list_init();//init une file_list
 void file_list_delete(struct file_list *);//delete une file_list
 void file_list_add(struct file_list *, struct file *);//add un file à la file_list
-void file_list_file_delete(struct peer_list *,struct file_list *,struct file *);//delete le file désigné par son ip
+void file_list_file_delete(struct peer_list *,struct file_list *,char *);//delete le file désigné par son ip
 struct file * find_file(struct file_list *,char *);//trouve le file avec sa clé
 int get_peer(struct peer_list *, struct peer *);//enleve un peer d'une peer_list (ne touche pas à la file_list!)
 int get_file(struct file_list *, struct file *);//enleve un file d'une file_list (ne touche pas à la peer_list!)
@@ -60,4 +60,7 @@ int add_link(struct file *,struct peer *);//Ajoute le fichier f dans la liste de
 int update_add(struct file_list *,struct peer *,struct file_list *);
 int update_delete(struct file_list *, struct peer *,struct file_list *);
 int delete_link(struct file *, struct peer *);
+
+void print_file_list(struct file_list * fl, int b);
+void print_peer_list(struct peer_list * pl, int b);
 #endif
