@@ -8,6 +8,12 @@
 #include <unistd.h> /* close */
 #include <netdb.h> /* gethostbyname */
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+//#include "communicate.h"
+#include "structure.h"
 
 #define MAX 20
 //#define PORT 1564
@@ -29,13 +35,14 @@ struct client_tab
 struct donnees
 {
   struct client_tab *ct;
-  struct client * client;// ne sert a rien?
-  struct list * peer_list;
-  struct base * base;
+  struct client * client;
+  struct peer_list * peer_list;
+  struct file_list * file_list;
   int sock;
   struct sockaddr_in * sockaddr;
 };
 
+// ne sert a rien
 struct donnees_function{
   struct donnees * _ref;
   struct client * current;

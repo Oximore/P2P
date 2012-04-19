@@ -54,9 +54,6 @@ void delete_peer_pointer(struct peer *, struct file_list *);// enleve p de ttes 
 void delete_file_pointer(struct file *, struct peer_list *);// enleve f de ttes les file_list de p : utilise get_file
 int add_link(struct file *,struct peer *);//Ajoute le fichier f dans la liste de peer qui correspont a ceux equivalent a la liste de peer pointee par le fichier
 
-//void add_peer_pointer(const struct peer *, struct file_list *);
-//fct update à faire!! si liste vide, la créer
-
 int update_add(struct file_list *,struct peer *,struct file_list *);
 int update_delete(struct file_list *, struct peer *,struct file_list *);
 int delete_link(struct file *, struct peer *);
