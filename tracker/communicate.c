@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "communicate.h"
 #include <time.h>
-#include "base.h"
+#include "structure.h"
 #include "interface.h"
 #include <string.h>
 
@@ -10,26 +10,32 @@
 //#define SEND_BUF_SIZE 4096
 #define IDLE_TIME // en secondes
 
-ulong ip;
-struct peer* peer = NULL;
-struct file_list* file_list = NULL;
-struct peer_list* peer_list = NULL;
 
 int communicate(struct donnees* donnees)
 {
-  ip = donnees->client->sockaddr->sin_addr.s_addr;
-  p = find_peer(donnees->peer_list, ip);
-  file_list = donnees->file_list;
-  peer_list = donnees->peer_list;
-
+  struct client* client=donnees->client;
+  ulong ip = client->sockaddr->sin_addr.s_addr;
+  struct peer* peer = find_peer(donnees->peer_list, ip);
+  struct file_list* file_list = donnees->file_list;
+  struct file_list* peer_list = donnees->peer_list;
+  
   char* recv_buffer= malloc(sizeof(char)*RECV_BUF_SIZE);
   
-  char* s1 = NULL;
-  char* s2 = NULL;
-  char* s3 = NULL;
-  char* s4 = NULL;
-  char* s5 = NULL;
-  char* s6 = NULL;
+  char* s1 = malloc(RECV_BUF_SIZE);
+  char* s2 = malloc(RECV_BUF_SIZE);
+  char* s3 = malloc(RECV_BUF_SIZE);
+  char* s4 = malloc(RECV_BUF_SIZE);
+  char* s5 = malloc(RECV_BUF_SIZE);
+  char* s6 = malloc(RECV_BUF_SIZE);
+  char* s0 = malloc(RECV_BUF_SIZE);
+  char* tab[7];
+  tab[0]=s0;
+  tab[1]=s1;
+  tab[2]=s2;
+  tab[3]=s3;
+  tab[4]=s4;
+  tab[5]=s5;
+  tab[6]=s6;
   int port;
   int read;
   int decalage;
@@ -40,7 +46,7 @@ int communicate(struct donnees* donnees)
     {
       
       
-      read=read_client(donnees->client->sock, recv_buffer);
+      read=read_client(client->sock, recv_buffer);
       if(read > 0)
 	{
 	  
@@ -51,52 +57,77 @@ int communicate(struct donnees* donnees)
 	      while(compte_crochet_fermant(recv_buffer)<2)
 		{
 		  decalage+=read;
-		  read=read_client(donnees->client->sock, recv_buffer + decalage);
+		  read=read_client(client->sock, recv_buffer + decalage);
 		}	  
-	      sscanf(recv_buffer,"%s %s %d %s [%s] %s [%s]",s1, s2, &port, s3, s4, s5, s6);
-	      if(strcmp(s1,"announce")==0 && strcmp(s2,"listen")==0 && strcmp(s3,"seed")==0 && strcmp(s5,"leech")==0)
+	      recv_buffer[decalage+read]='\0';// not sure
+	      parse(recv_buffer, tab);
+	      port = atoi(s2);
+	      if(strcmp(s0,"announce")==0 && strcmp(s1,"listen")==0 && strcmp(s3,"seed")==0 && strcmp(s5,"leech")==0)
 		{
 		  if(peer == NULL)
 		    {
-		      peer = peer_init(ip, port, file_list_init());
-		      peer_list_add(peer_list, file_list, peer);
+		      peer = peer_init(ip, port);
+		      peer_list_add(peer_list, peer);
 		    }
-		  while(s4 != '\0')
+		  while(strlen(s4) > 0)
 		    {
-		      sscanf(s4, "%s %d %d %s %s", s1, length, piece_size, s2, s4);			  
-		      //remplit_file(s1, length, piece_size, s2); // A faire
-		      
+		      if(compte_espace(s4)>3)
+			{		 
+			  sscanf(s4, "%s %d %d %s %s", s1, length, piece_size, s2, s4);
+			}
+		      else
+			{
+			  sscanf(s4, "%s %d %d %s", s1, length, piece_size, s2);
+			  s4[0]='\0';			
+			}
+		      //si le fichier n'existe pas on le cree
+		      struct file* file = find_file(file_list, s1);
+		      if(NULL == file)
+			{
+			  file = remplit_file(s1, length, piece_size, s2);
+			  file_list_add(file_list, file);
+			}
+		      add_link(file, peer); 
 		    }
-		  //l=keys_string_to_file_list(s6);
-		  //update_add(l);
-		  write_client(donnees->client->sock, "ok");
+		  struct file_list* f_add = keys_string_to_file_list(s6);
+		  //on suppose qu'il ne leech pas un fichier qu'il a declare avoir...
+		  update_add(file_list, peer, f_add);
+		  file_list_delete(f_add);
+		  write_client(client->sock, "ok");
 		}
 	      break;
 	      
 	    case'u':
-	      if(recv_buffer[read-1] != ']') printf("le recv a merdé");//gérer les messages en plusieurs paquets
-	      else
-		{ 
-		  sscanf(recv_buffer,"%s %s [%s] %s [%s]",s1 ,s2, s3, s4, s5);
-		  if(strcmp(s1,"update")==0 && strcmp(s2,"seed")==0 && strcmp(s4,"leech")==0)
-		    {
-		      if(peer==NULL){end(donnees->client, donnees->ct); return 0;}//ferme la socket
-		      else
-			{ 
-			  char* res=fusion_keys_string(s3, s5);
-			  remplit_keys(res);
-			  free(res);
-			  write_client(donnees->client->sock, "ok");
-			}	    
-		    }
+	      decalage=0;
+	      while(compte_crochet_fermant(recv_buffer)<2)
+		{
+		  decalage+=read;
+		  read=read_client(client->sock, recv_buffer + decalage);
+		}	  
+	      recv_buffer[decalage+read]='\0'; //not sure
+	      parse(recv_buffer, tab);
+	      if(strcmp(s0,"update")==0 && strcmp(s1,"seed")==0 && strcmp(s3,"leech")==0)
+		{
+		  if(peer==NULL){end(client, donnees->ct); return 0;}//ferme la socket
+		  else
+		    { 
+		      char* res=fusion_keys_string(s2, s4);
+		      struct file_list* f = keys_string_to_file_list(res);
+		      update_diff(f, peer->file_list, file_list, peer);
+		      file_list_delete(f);
+		      free(res);
+		      write_client(client->sock, "ok");
+		    }	    
 		}
+	      
 	      break;
 	      
 	    default:
-	      end(donnees->client,donnees->ct);
+	      printf("entree non valide");
+	      end(client,donnees->ct);
 	      return 0;
 	      
-	      //case''
+	     
 	    }
 	  
 	}
@@ -105,81 +136,44 @@ int communicate(struct donnees* donnees)
   return EXIT_SUCCESS;
 }
   
-void end(struct client* client, struct client_tab* tab)
+void end(struct client* client, struct client_tab* ct)
   {
     close(client->sock);
-    client_tab_delete_client(tab,client);
+    client_tab_delete_client(ct,client);
   }
 
-
-void remplit_keys(char* keys)//met a jour la liste des pairs et previous_update
+void update_diff(struct file_list* new, struct file_list* old, struct file_list* file_list, struct peer* peer)
 {
-  
-  struct base* a_ajouter=keys_string_to_base(keys);
-  struct base* a_stocker=keys_string_to_base(keys);
-  struct base* a_enlever=p->previous_update;
-    
-  // on a considere qu'il n'y a pas de cles en double dans seeds
-  
-  // on onleve les elements a la fois dans a_ajouter et a_enlever (cf key)
-  p->previous_update=a_stocker;
-  struct element* elt=a_ajouter->first;
-  struct element* aux;
-  while(elt!=NULL)
+  struct file_list* f_add=file_list_copy(new);
+  struct file_list* f_delete=file_list_copy(old);
+  //le diff
+  if(f_add->first == NULL) update_delete(f_delete);
+  else 
     {
-      struct element* elt2=a_enlever->first;
-      struct element* aux2;      
-      while(elt2!=NULL)
+      struct file* aux_file=f_add->first;
+      struct aux_file2=NULL;      
+      while(aux_file!=NULL)
 	{
-	  if(strcmp(elt->key,elt2->key)==0)
+	  aux_file2=find_file(f_delete, aux_file->key);
+	  if(aux_file2!=NULL)
 	    {
-	      aux=elt;
-	      elt=elt->next;
-	      aux2=elt2;
-	      elt2=elt2->next;
-	      base_element_delete(a_ajouter,aux);
-	      base_element_delete(a_enlever,aux2);
+	      file_list_file_delete(NULL, f_delete, aux_file->key);
+	      aux_file2=aux_file;
+	      aux_file=aux_file->next;
+	      file_list_file_delete(NULL, f_add, aux_file2->key);
 	    }
+	  else aux_file=aux_file->next;
 	}
-    }
-  
-
-  // on ajoute ceux qui sont toujours dans a_ajouter
-  elt=a_ajouter->first;
-  while(elt!=NULL)
-    {
-      struct element* element=trouve_element(base, elt->key);
-      if(element != NULL)
-	{
-	  list_add(element->peer_list, ip, p->port);
-	}
-      //else    A faire: appeler la création. avec quels argument ?  
-      elt = elt->next;
-    }
-  
- 
-  // on supprime ceux qui sont toujours dans a_enlever
-  elt=a_enlever->first;
-  while(elt!=NULL)
-    {
-      struct element* element=trouve_element(base, elt->key);
-      if(element!= NULL)
-	{
-	  list_peer_delete(element->peer_list, ip);
-	}
-      //else  A faire
-      elt = elt->next;
-    }
-  
-  base_delete(a_ajouter);
-  base_delete(a_enlever);
-  free(a_ajouter);
-  free(a_enlever);
+      update_add(file_list, peer, f_add);
+      update_delete(file_list, peer, f_delete);
+    }  
+  file_list_delete(f_add);
+  file_list_delete(f_delete);
 }
-
 
 char* fusion_keys_string(char* seed, char* leech)
 {
+  int esp_dec=0;//ajout d'un espace si les 2 sont non vides
   int seed_l=strlen(seed);
   int leech_l=strlen(leech);
   char* res= malloc(sizeof(char)*(seed_l+leech_l+1));
@@ -188,11 +182,16 @@ char* fusion_keys_string(char* seed, char* leech)
     {
       res[i]=seed[i];
     } 
+  if(seed_l>0 && leech_l>0)
+    {
+      res[seed_l]=' ';
+      esp_dec=1;
+    }
   for(i=0;i<leech_l;i++)
     {
-      res[i+seed_l]=leech[i];
+      res[i+seed_l+esp_dec]=leech[i];
     }
- res[seed_l+leech_l]='\0';
+ res[seed_l+leech_l+esp_des]='\0';
  return res;
 }
 
@@ -201,8 +200,8 @@ struct file_list* keys_string_to_file_list(char* keys)
 {
   
   struct file_list* new_file_list=file_list_init();
-  char **tab;
-  tab[0]=malloc(sizeof(char)*50);//taille de cle<50 ???
+  char * tab[100];//moins de 100 clés ?
+  tab[0]=malloc(sizeof(char)*50);//tailles de clés<50 char ?
   int k=0; 
   int i=0;
   int j=0;
@@ -212,9 +211,8 @@ struct file_list* keys_string_to_file_list(char* keys)
       if(keys[i]==' ') 
 	{
 	  tab[k][j]='\0';
-	  tab[k]=malloc(sizeof(char)*50);
-	 
-
+	  tab[k+1]=malloc(sizeof(char)*50);
+	  k++;
 	  j=-1;
 	}
       else
@@ -225,52 +223,18 @@ struct file_list* keys_string_to_file_list(char* keys)
       i++;
     }
   tab[k][j]='\0';
-  //si la cle n'existe pas on l'add
-
-  for(l=0;l<k;l++)
+  for(l=0;l<k+1;l++)
     {
-      if(find_file(file_list, tab[k])!=NULL)
-	{
-	  struct file* f=file_init(tab[k],NULL,0,0,NULL);
-	  file_list_add(NULL, new_file_list, f);
-	}
-      else free(tab[l]);
+      file_list_add(new_file_list, file_init(tab[l],NULL,0,0));
     }
-      return new_file_list;
+  return new_file_list;
 }
 
-void remplit_file(char* filename, int length, int piece_size, char* key)
+struct file* remplit_file(char* filename, int length, int piece_size, char* key)
 {
-
-  char* my_base = keys_string_to_base(key);
-  // fichier existe?  
-  //... si on doit créer le fichier:
-  //my_base->first
-  int name_l=strlen(filename);
-  int key_l=strlen(key);
-  char* new_key= malloc(sizeof(char)*(key_l+1));
-  char* new_name= malloc(sizeof(char)*(name_l+1));
-  int i;
-  
-  for(i=0;i<key_l;i++)
-    {
-      new_key[i]=key[i];
-    } 
-  for(i=0;i<name_l;i++)
-    {
-      new_name[i]=filename[i];
-    }
-  new_name[name_l]='\0';
-  new_key[key_l]='\0';
-  
-  
-
-  //creer la list -> creer le pair
-struct element * e = element_init(new_key, new_name, length, piece_size, struct list * l);
-
-
-base_add(base, e);
-base_delete(my_base);
+  char* new_filename = malloc(sizeof(filename));
+  char* new_key = malloc(sizeof(key));
+  return file_init(new_key, new_filename, length, piece_size);
 }
 
 
@@ -285,3 +249,61 @@ int compte_crochet_fermant(char* buf)
     }
   return i;
 }
+
+int compte_espace(char* buf)
+{
+  int i=0;
+  int j=0;
+  while(buf[j]!='\0')
+    {
+      if(buf[j]==' ') i++;
+      j++;
+    }
+  return i;
+}
+
+void parse(char* buf, char** tab)
+// remplit les char* du tableau tab à ârtir de buf 
+// buf doit finir par \0
+{
+  int crochet_ouvert=0;
+  int i=0;
+  int k=0;//indice dans tab
+  int j=0;
+  while(buf[i]!='\0')
+    {
+      if(crochet_ouvert==1)
+	{
+	  if(buf[i]==']')
+	    {
+	      crochet_ouvert=0;
+	    }
+	  else
+	    {
+	      tab[k][j]=buf[i];
+	      j++;
+	    }
+	}
+      else if(buf[i]=='[') crochet_ouvert=1;
+      else if(buf[i]==' ')
+	{
+	  tab[k][j]='\0';
+	  j=0;
+	  k++;
+	}
+      else
+	{
+	  tab[k][j]=buf[i];
+	  j++;
+	}
+       i++;
+    }
+  tab[k][j]='\0';
+  while(k<6)
+    { 
+      k++;
+      tab[k][0]='\0';
+    }
+}
+
+
