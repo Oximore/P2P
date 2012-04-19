@@ -57,7 +57,7 @@ int add_link(struct file *,struct peer *);//Ajoute le fichier f dans la liste de
 int update_add(struct file_list *,struct peer *,struct file_list *);
 int update_delete(struct file_list *, struct peer *,struct file_list *);
 int delete_link(struct file *, struct peer *);
-
-void print_file_list(struct file_list * fl, int b);
-void print_peer_list(struct peer_list * pl, int b);
+struct file_list * file_list_copy(struct file_list *);
+void print_file_list(struct file_list * , int);
+void print_peer_list(struct peer_list * , int);
 #endif
