@@ -71,11 +71,7 @@ public class MiseAJour extends Thread {
 		out = socket.getOutputStream();
 		
 		out.write(("update " + listeFichiers).getBytes());
-<<<<< HEAD
-		System.out.println(">> " + "update " + listeFichiers);
-=======
 		System.out.println(">> update " + listeFichiers);
->>>>>>> 1c6852c975f2c37ca95939e82042cdf854ceea34
 		out.flush();
 		waitOk(in);
 		

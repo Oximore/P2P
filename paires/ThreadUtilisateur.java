@@ -82,7 +82,7 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 
 		//  *TODO*
 		while (! (0<=resultat && resultat <= co.getTab().length+1)){ 
-		    if (co.getTab().length < 1) {
+		    if (co.getTab().length > 0) {
 			System.out.println("Voici les fichiers correspondant à vos critères de recherche:");
 			for (i=0; i<co.getTab().length ; i++)
 			    System.out.println((1+i) + ":\t" + co.getTab()[i]);
@@ -92,9 +92,10 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 			    compteur = scan.next();
 			resultat = scan.nextInt();
 		    }
-		    else
+		    else {
+			System.out.println("Aucun fichier ne correspond à votre recherche.");
 			resultat = 0;
-		    
+		    }
 		}
 		if (resultat != 0){
 		    resultat--;
