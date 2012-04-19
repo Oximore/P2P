@@ -25,7 +25,7 @@ int communicate(struct donnees* donnees)
   struct file_list* file_list = donnees->file_list;
   struct peer_list* peer_list = donnees->peer_list;
   int refresh_time=get_refresh_time();
-  printf("refresh time:%d\n",time_out);
+  printf("refresh time:%d\n",refresh_time);
   char* recv_buffer= malloc(sizeof(char)*RECV_BUF_SIZE);
   char* send_buffer= malloc(sizeof(char)*SEND_BUF_SIZE);  
   char* s1 = malloc(RECV_BUF_SIZE);
@@ -52,6 +52,7 @@ int communicate(struct donnees* donnees)
 
   while(1)
     {
+      //print_data(file_list, peer_list);
       recv_buffer[0]='\0';
       send_buffer[0]='\0';
       read=read_client(client->sock, recv_buffer);
@@ -168,7 +169,7 @@ int communicate(struct donnees* donnees)
 		      s2[strlen(s1)-11]='\0';
 		      
 		      printf("recherche:\nfilename=%s\n",s2);
-		      file* file=find_file_name(file_list, s2);
+		      struct file* file=find_file_name(file_list, s2);
 		      if(file==NULL) write_client(client->sock, "list []");
 		      else
 			{
@@ -192,15 +193,25 @@ int communicate(struct donnees* donnees)
 	      parse(recv_buffer, tab);
 	      if(strcmp(s0,"getfile")==0)
 		{
-		  file* file=find_file(file_list, s1);
-		  if(file==NULL)
+		  struct file* f=find_file(file_list, s1);
+		  if(f==NULL||f->peer_list->first==NULL)
 		    {
 		      sprintf(send_buffer, "peers %s []", s1);
 		      write_client(client->sock, send_buffer);
 		    }
 		  else
 		    {
-		      ////////////////////////////////////
+		      struct elt_peer* aux=f->peer_list->first;
+		      sprintf(send_buffer, "peers %s [%lu:%d", s1, aux->peer->ip_address, aux->peer->port);
+		      aux=aux->next;
+		      while(aux!=NULL)
+			{
+			  sprintf(send_buffer+strlen(send_buffer), " %lu:%d",  aux->peer->ip_address, aux->peer->port);
+			  aux=aux->next;
+			}
+		      sprintf(send_buffer+strlen(send_buffer), "]");
+		      write_client(client->sock, send_buffer);
+		      printf("replied");
 		    }
 		}
 	      break;
@@ -243,19 +254,16 @@ void update_diff(struct file_list* new, struct file_list* old, struct file_list*
   if(f_add->first == NULL) update_delete(file_list, peer, f_delete);
   else 
     {
-      struct file* aux_file=f_add->first;
-      struct file* aux_file2=NULL;      
-      while(aux_file!=NULL)
+      struct elt_file* aux_elt_file=f_add->first;;
+      while(aux_elt_file!=NULL)
 	{
-	  aux_file2=find_file(f_delete, aux_file->key);
-	  if(aux_file2!=NULL)
+	  if(find_file(f_delete, aux_elt_file->file->key)!=NULL)
 	    {
-	      file_list_file_delete(NULL, f_delete, aux_file->key);
-	      aux_file2=aux_file;
-	      aux_file=aux_file->next;
-	      file_list_file_delete(NULL, f_add, aux_file2->key);
-	    }
-	  else aux_file=aux_file->next;
+	      file_list_file_delete(NULL, f_delete, aux_elt_file->file->key);
+	      file_list_file_delete(NULL, f_add, aux_elt_file->file->key);
+	      aux_elt_file=f_add->first;
+		}
+	  else aux_elt_file=aux_elt_file->next;
 	}
       update_add(file_list, peer, f_add);
       update_delete(file_list, peer, f_delete);
