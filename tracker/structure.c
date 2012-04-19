@@ -6,10 +6,43 @@ struct peer_list * peer_list_init()
   l->first = NULL;
   return l;
 }
+
+struct elt_peer * elt_peer_init(struct peer *p)
+{
+  struct elt_peer * e = malloc(sizeof(struct elt_peer));
+  e->next =NULL;
+  e->peer = p;
+  return e;
+}
+
+struct elt_file * elt_file_init(struct file *f)
+{
+  struct elt_file * e = malloc(sizeof(struct elt_file));
+  e->next =NULL;
+  e->file = f;
+  return e;
+}
+
+struct elt_peer * elt_peer_delete(struct elt_peer *e,struct file_list *fl)
+{
+  struct elt_peer * e2 = e->next;
+  peer_delete(e->peer,fl);
+  free(e);
+  return e2;
+}
+
+
+struct elt_file * elt_file_delete(struct elt_file *e,struct peer_list * pl)
+{
+  struct elt_file * e2 = e->next;
+  file_delete(e->file,pl);
+  free(e);
+  return e2;
+}
 // on fait peer_delete(l->first,NULL) car on ne s'occupe pas de l'autre liste
 void peer_list_delete(struct peer_list * l)
 {
-  struct peer * p;
+  struct elt_peer * p;
   if(l->first==NULL)
     {
       free(l);
@@ -18,18 +51,19 @@ void peer_list_delete(struct peer_list * l)
   while(l->first->next!=NULL)
     {
       p = l->first->next;
-      peer_delete(l->first,NULL);
+      elt_peer_delete(l->first,NULL);
       l->first = p;
     }
-  peer_delete(l->first,NULL);
+  elt_peer_delete(l->first,NULL);
   free(l);
 }
 
 
 int peer_list_add(struct peer_list * l,struct peer * p)
 {
-  p->next = l->first;
-  l->first = p;
+  struct elt_peer *e = elt_peer_init(p);
+  e->next = l->first;
+  l->first = e;
   return 0;
 }
 
@@ -39,25 +73,25 @@ void peer_list_peer_delete(struct peer_list * l,struct file_list * f,unsigned lo
     return;
   if(l->first->next == NULL)
     {
-      if(l->first->ip_address!=ip_address) 
+      if(l->first->peer->ip_address!=ip_address) 
 	return;
-      peer_delete(l->first,f);
+      elt_peer_delete(l->first,f);
       l->first =NULL;
       return; 
     }
   
-  struct peer * p = l->first;
-  if(p->ip_address==ip_address)
+  struct elt_peer * p = l->first;
+  if(p->peer->ip_address==ip_address)
     {
       l->first = p->next;
-      peer_delete(p,f);
+      elt_peer_delete(p,f);
       return;
     }
   while(p->next!=NULL )
     {
-      if(p->next->ip_address==ip_address)
+      if(p->next->peer->ip_address==ip_address)
 	{
-	  struct peer * p2 = peer_delete(p->next,f);
+	  struct elt_peer * p2 = elt_peer_delete(p->next,f);
 	  p->next=p2;
 	  return;
 	}
@@ -68,7 +102,7 @@ void peer_list_peer_delete(struct peer_list * l,struct file_list * f,unsigned lo
 struct peer * peer_init(unsigned long ip_address, int port)
 {
   struct peer * p=malloc(sizeof(struct peer));
-  p->next=NULL;
+  //p->next=NULL;
   p->ip_address = ip_address;
   p->port=port;
   p->time = 0;
@@ -78,13 +112,13 @@ struct peer * peer_init(unsigned long ip_address, int port)
 
 struct peer * peer_delete(struct peer * p, struct file_list * f)
 {
-  struct peer * p2 = p->next;
+  //struct peer * p2 = p->next;
   if(f!=NULL)
     delete_peer_pointer(p,f);
   if(p->file_list != NULL)
-    free(p->file_list);
+    free(p->file_list);//il faut free les elt
   free(p);
-  return p2;
+  return NULL;//changer les val de ret
 }
 
 struct peer * find_peer(struct peer_list * l,unsigned long ip)
@@ -93,11 +127,11 @@ struct peer * find_peer(struct peer_list * l,unsigned long ip)
     return NULL;
   if(l->first==NULL)
     return NULL;
-  struct peer * p= l->first;
+  struct elt_peer * p= l->first;
   while(p!=NULL)
     {
-      if(p->ip_address==ip)
-	return p;
+      if(p->peer->ip_address==ip)
+	return p->peer;
       p=p->next;
     }
   return NULL;
@@ -109,7 +143,7 @@ struct peer * find_peer(struct peer_list * l,unsigned long ip)
 struct file * file_init(char * key,char * name, int length, int p_size)
 {
   struct file * e = malloc(sizeof(struct file));
-  e->next = NULL;
+  //e->next = NULL;
   e->key=key;
   e->name=name;
   e->length=length;
@@ -120,14 +154,14 @@ struct file * file_init(char * key,char * name, int length, int p_size)
 
 struct file * file_delete(struct file * e,struct peer_list * p)
 {
-  struct file * e2 = e->next;
+  //struct file * e2 = e->next;
   if(p!=NULL)
-    delete_file_pointer(e,p);
+    delete_file_pointer(e,p);//a modifier
   free(e->key);
   free(e->name);
   if(e->peer_list!=NULL)
-    free(e->peer_list);
-  return e2;
+    free(e->peer_list);// a free proprement
+  return NULL;
 }
 
 struct file_list * file_list_init()
@@ -139,18 +173,19 @@ struct file_list * file_list_init()
 
 void file_list_delete(struct file_list * b)
 {
-  struct file * tmp = b->first;
+  struct elt_file * tmp = b->first;
   while(b->first != NULL)
     {
       b->first = b->first->next;
-      file_delete(tmp,NULL);
+      elt_file_delete(tmp,NULL);
       tmp = b->first;
     }
   free(b);
 }
 
-void file_list_add(struct file_list * b, struct file * e)
+void file_list_add(struct file_list * b, struct file * f)
 {
+  struct elt_file *e = elt_file_init(f);
   e->next = b->first;
   b->first = e;
 }
@@ -162,25 +197,25 @@ void file_list_file_delete(struct peer_list * pl,struct file_list * b,char * key
     return;
   if(b->first->next == NULL)
     {
-      if(strcmp(b->first->key,key)) 
+      if(strcmp(b->first->file->key,key)) 
 	return;
-      file_delete(b->first,pl);
+      elt_file_delete(b->first,pl);
       b->first =NULL;
       return; 
     }
   
-  struct file * p = b->first;
-  if(!strcmp(p->key,key))
+  struct elt_file * p = b->first;
+  if(!strcmp(p->file->key,key))
     {
       b->first = p->next;
-      file_delete(p,pl);
+      elt_file_delete(p,pl);
       return;
     }
   while(p->next!=NULL )
     {
-      if(!strcmp(p->next->key,key))
+      if(!strcmp(p->next->file->key,key))
 	{
-	  struct file * p2 = file_delete(p->next,pl);
+	  struct elt_file * p2 = elt_file_delete(p->next,pl);
 	  p->next=p2;
 	  return;
 	}
@@ -196,11 +231,11 @@ struct file * find_file(struct file_list * b,char * key)
     return NULL;
   if(b->first==NULL)
     return NULL;
-  struct file * p= b->first;
+  struct elt_file * p= b->first;
   while(p!=NULL)
     {
-      if(!strcmp(p->key,key))
-	return p;
+      if(!strcmp(p->file->key,key))
+	return p->file;
       p=p->next;
     }
   return NULL;
@@ -217,23 +252,27 @@ int get_peer(struct peer_list * l, struct peer * f)
     return -1;
   if(l->first->next == NULL)
     {
-      if(l->first->ip_address != f->ip_address) 
+      if(l->first->peer->ip_address != f->ip_address) 
 	return -1;
+      free(l->first);
       l->first = NULL;
       return 0; 
     }
   
-  struct peer * p = l->first;
-  if(p->ip_address == f->ip_address)
+  struct elt_peer * p = l->first;
+  if(p->peer->ip_address == f->ip_address)
     {
       l->first = p->next;
+      free(p);
       return 0;
     }
   while(p->next!=NULL )
     {
-      if(p->next->ip_address == f->ip_address)
+      if(p->next->peer->ip_address == f->ip_address)
 	{
-	  p = p->next->next;
+	  struct elt_peer * tmp = p->next;
+	  p->next = p->next->next;
+	  free(tmp);
 	  return 0;
 	}
 	p = p->next;
@@ -250,23 +289,27 @@ int get_file(struct file_list * l, struct file * f)
     return 1;
   if(l->first->next == NULL)
     {
-      if(strcmp(l->first->key,f->key)) 
+      if(strcmp(l->first->file->key,f->key)) 
 	return 1;
+      free(l->first);
       l->first = NULL;
       return 0; 
     }
   
-  struct file * p = l->first;
-  if(!strcmp(p->key,f->key))
+  struct elt_file * p = l->first;
+  if(!strcmp(p->file->key,f->key))
     {
       l->first = p->next;
+      free(p);
       return 0;
     }
   while(p->next!=NULL )
     {
-      if(!strcmp(p->next->key,f->key))
+      if(!strcmp(p->next->file->key,f->key))
 	{
-	  p = p->next->next;
+	  struct elt_file * tmp = p->next;
+	  p->next = p->next->next;
+	  free(tmp);
 	  return 0;
 	}
 	p = p->next;
@@ -282,10 +325,10 @@ void delete_peer_pointer(struct peer * p, struct file_list * f)
     return; 
 
   //iteration sur tous les fichiers
-  struct file * tmp = f->first;
+  struct elt_file * tmp = f->first;
   while(NULL != tmp)
     {
-      get_peer(tmp->peer_list, p);
+      get_peer(tmp->file->peer_list, p);
       //si peer_list->first devient null
       //plus de seeders, mais on laisse le fichier dans la base
       tmp = tmp->next;
@@ -298,10 +341,10 @@ void delete_file_pointer(struct file * f, struct peer_list * p)
     return;
 
   //iteration sur tous les peers
-  struct peer * tmp = p->first;
+  struct elt_peer * tmp = p->first;
   while(NULL != tmp)
     {
-      get_file(tmp->file_list, f);
+      get_file(tmp->peer->file_list, f);
       tmp = tmp->next;
     }
 }
@@ -338,10 +381,10 @@ int delete_link(struct file *f, struct peer *p)
 // f_add "une copie" des file!! chercher le vrai pointeur
 int update_add(struct file_list *fl,struct peer *p,struct file_list *f_add)
 {
-  struct file * tmp = f_add->first;
+  struct elt_file * tmp = f_add->first;
   struct file * tmp2;
   if(tmp!=NULL)
-    tmp2 = find_file(fl,tmp->key);
+    tmp2 = find_file(fl,tmp->file->key);
   //printf("coucou %s\n",tmp2->key);
   while(tmp!=NULL)
     {
@@ -349,24 +392,24 @@ int update_add(struct file_list *fl,struct peer *p,struct file_list *f_add)
 	add_link(tmp2,p);
       tmp = tmp->next;
       if(tmp!=NULL)
-	tmp2 = find_file(fl,tmp->key);
+	tmp2 = find_file(fl,tmp->file->key);
     }
   return 0;
 }
 
 int update_delete(struct file_list *fl, struct peer *p,struct file_list * f_delete)
 {
-  struct file * tmp = f_delete->first;
+  struct elt_file * tmp = f_delete->first;
   struct file * tmp2;
   if(tmp!=NULL)
-    tmp2 = find_file(fl,tmp->key);
+    tmp2 = find_file(fl,tmp->file->key);
   while(tmp!=NULL)
     {
       if(tmp2!=NULL)
 	delete_link(tmp2,p);
       tmp = tmp->next;
       if(tmp!=NULL)
-	tmp2 = find_file(fl,tmp->key);
+	tmp2 = find_file(fl,tmp->file->key);
     }
   return 0; 
 }
@@ -381,12 +424,12 @@ void print_data(struct file_list *fl,struct peer_list * pl)
 
 void print_file_list(struct file_list * fl, int b)
 {
-  struct file * tmp = fl->first;
+  struct elt_file * tmp = fl->first;
   while(tmp!=NULL)
     {
-      printf("file %s\n",tmp->key);
+      printf("file %s\n",tmp->file->key);
       if(b)
-	print_peer_list(tmp->peer_list,0);
+	print_peer_list(tmp->file->peer_list,0);
       tmp=tmp->next;
     }
   printf("\n");
@@ -395,12 +438,12 @@ void print_file_list(struct file_list * fl, int b)
 
 void print_peer_list(struct peer_list * pl, int b)
 {
-  struct peer * tmp = pl->first;
+  struct elt_peer * tmp = pl->first;
   while(tmp!=NULL)
     {
-      printf("peer %lu\n",tmp->ip_address);
+      printf("peer %lu\n",tmp->peer->ip_address);
       if(b)
-	print_file_list(tmp->file_list,0);
+	print_file_list(tmp->peer->file_list,0);
       tmp=tmp->next;
     }
   printf("\n");
@@ -409,12 +452,12 @@ void print_peer_list(struct peer_list * pl, int b)
 struct file_list * file_list_copy(struct file_list * fl)
 {
   struct file_list * fl2 = file_list_init();
-  struct file * tmp = fl->first;
+  struct elt_file * tmp = fl->first;
   struct file * tmp2;
   while(tmp != NULL)
     {
-      char * s = malloc((strlen(tmp->key)+1)*sizeof(char));
-      strcpy(s,tmp->key);
+      char * s = malloc((strlen(tmp->file->key)+1)*sizeof(char));
+      strcpy(s,tmp->file->key);
       tmp2 = file_init(s,NULL,0,0);
       file_list_add(fl2,tmp2);
       tmp = tmp->next;

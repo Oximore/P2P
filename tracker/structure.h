@@ -7,21 +7,33 @@
 
 struct peer
 {
-  struct peer * next;
+  //struct peer * next;
   unsigned long ip_address;
   int port;
   int time;
   struct file_list * file_list;
 };
 
+struct elt_peer
+{
+  struct elt_peer * next;
+  struct peer * peer;
+};
+
 struct peer_list
 {
-  struct peer * first;
+  struct elt_peer * first;
+};
+
+struct elt_file
+{
+  struct elt_file * next;
+  struct file * file;
 };
 
 struct file
 {
-  struct file * next;
+  //struct file * next;
   char * key;
   char * name;
   int length;
@@ -31,9 +43,13 @@ struct file
 
 struct file_list
 {
-  struct file * first;
+  struct elt_file * first;
 };
 
+struct elt_peer * elt_peer_init(struct peer *);
+struct elt_file * elt_file_init(struct file *);
+struct elt_peer * elt_peer_delete(struct elt_peer *e,struct file_list *);
+struct elt_file * elt_file_delete(struct elt_file *e,struct peer_list * );
 struct peer_list * peer_list_init();
 void peer_list_delete(struct peer_list * ); //delete la peer_list
 int peer_list_add(struct peer_list *,struct peer *); //add un peer à la peer_list

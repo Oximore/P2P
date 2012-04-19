@@ -26,12 +26,13 @@ int main()
 
   struct file_list *f_add=file_list_init();
   file_list_add(f_add,file_init(s3,NULL,12,14));
-  //print_file_list(f_add,1);
-  //  print_data(fl,pl);
+ 
   update_add(fl,p2,f_add);
+  print_data(fl,pl);
+  update_delete(fl,p2,f_add);
   print_data(fl,pl);
   file_list_file_delete(pl,fl,f->key);
   peer_list_peer_delete(pl,fl,p->ip_address);
-  //print_data(fl,pl);
+  print_data(fl,pl);
   return 0;
 }
