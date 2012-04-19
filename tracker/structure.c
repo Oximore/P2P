@@ -398,9 +398,11 @@ int delete_link(struct file *f, struct peer *p)
   if(NULL == f || NULL == p)
     return -1;
   if(p->file_list == NULL)
-    p->file_list = file_list_init();
+    return 0;
+    //p->file_list = file_list_init();
   if(f->peer_list == NULL)
-    f->peer_list = peer_list_init();
+    return 0;
+    //f->peer_list = peer_list_init();
   get_file(p->file_list,f);
   get_peer(f->peer_list,p);
   return 0;
@@ -448,19 +450,22 @@ int update_delete(struct file_list *fl, struct peer *p,struct file_list * f_dele
 void print_data(struct file_list *fl,struct peer_list * pl)
 {
   print_file_list(fl,1);
+  printf("---\n");
   print_peer_list(pl,1);
   printf("........\n");
 }
 
 void print_file_list(struct file_list * fl, int b)
 {
+  if(fl == NULL)
+    return;
   struct elt_file * tmp = fl->first;
   while(tmp!=NULL)
     {
       printf("file %s\n",tmp->file->key);
       if(b)
-	print_peer_list(tmp->file->peer_list,0);
-      tmp=tmp->next;
+      	print_peer_list(tmp->file->peer_list,0);
+      tmp = tmp->next;
     }
   printf("\n");
 }
