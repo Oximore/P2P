@@ -371,6 +371,14 @@ int update_delete(struct file_list *fl, struct peer *p,struct file_list * f_dele
   return 0; 
 }
 
+
+void print_data(struct file_list *fl,struct peer_list * pl)
+{
+  print_file_list(fl,1);
+  print_peer_list(pl,1);
+  printf("........\n");
+}
+
 void print_file_list(struct file_list * fl, int b)
 {
   struct file * tmp = fl->first;

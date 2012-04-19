@@ -60,4 +60,5 @@ int delete_link(struct file *, struct peer *);
 struct file_list * file_list_copy(struct file_list *);
 void print_file_list(struct file_list * , int);
 void print_peer_list(struct peer_list * , int);
+void print_data(struct file_list *,struct peer_list *);
 #endif
