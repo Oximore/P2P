@@ -12,6 +12,7 @@ all: $(SRC)
 	$(CJ) Pair.java
 
 W: $(EXEC)
+	-rm *.class
 	$(CJ) $(WFLAGS) Pair.java
 
 run: $(EXEC) client

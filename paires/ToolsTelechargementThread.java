@@ -16,7 +16,7 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.net.UnknownServiceException;
 import java.io.CharConversionException;
-
+import java.util.ArrayList;
 
 
 public class ToolsTelechargementThread extends Thread {
@@ -80,8 +80,8 @@ public class ToolsTelechargementThread extends Thread {
     // *TODO* télécharger 10 par 10 plutôt :x
     void telecharger(String ip, int port, String key, boolean [] masque) throws UnknownServiceException, CharConversionException {
 	int i = 0 , max;
-	String reponse = "", question = "", key_tmp = "";
-	String [][] reponse_partielle;
+	String reponse = "", question = "";// key_tmp = "";
+	List<String[]> reponse_partielle;
 	boolean bool;
 	
 	while (i < masque.length) {	
@@ -101,32 +101,25 @@ public class ToolsTelechargementThread extends Thread {
 	    question = question.trim() + "]";
 	    
 	    if (bool){
-
-		// static String demanderPiece(String ip, int port, String question) throws IOException {
-		/** /
-		reponse = demandeCrochet(ip, port, question, 5 , 1000);
-		String key_tmp = reponse.split(" ")[1];
-		if (0 != reponse.indexOf("data") || key == null || !key.equals(key_tmp))
-		    throw new CharConversionException("réponse inapropriée :\n>> " + question + "\n<< " + reponse);
+		Fichier file = (Fichier)_hash.get(key);
+		if (file == null)
+		    System.out.println("Gros problème !");
 		
-		reponse_partielle = reponse.substring(1+reponse.indexOf("["),reponse.indexOf("]"));
-		String [][] infos = ;
-		enregistre((Fichier)_hash.get(key_tmp), reponse.substring(1+reponse.indexOf("["),reponse.indexOf("]")).split(" "));
-		// */
-
-		reponse_partielle =  demanderPiece(ip, port, question, 5, 1000);
-		enregistre((Fichier)_hash.get(key_tmp), reponse_partielle);
+		reponse_partielle =  demanderPiece(ip, port, question, 5, 1000, (int) file.getTaille() );
+		enregistre(file, reponse_partielle);
 		
 
 		// *TODO* à virer ?
 		try{Thread.sleep(100);}
-		catch(InterruptedException ite){}		
+		catch(InterruptedException ite){ 
+		    ite.printStackTrace(); 
+		}		
 	    }
 	}
     }
     
     //longeur = _fichierConf.getTaille();
-    static void enregistre(Fichier f, String [][] infos){ // String [][] infos){
+    static void enregistre(Fichier f, List<String[]> infos){ // String [][] infos){
 	System.out.println("fonction enregistre");
 	//String [][] tab = new String[infos.length][2];
 	int indice;
@@ -140,16 +133,19 @@ public class ToolsTelechargementThread extends Thread {
 	    // *TODO* ressérer le try pour enregistrer le masque en partie ?
 	    try{
 		RandomAccessFile file = new RandomAccessFile("Download/"+f.getName(), "rw");
-		for (int i=0 ; i<infos[0].length ; i++){
+		for (int i=0 ; i<infos.size() ; i++){
 		    //System.out.println("indice : " + infos[i][0]);
-		    indice = Integer.parseInt(infos[0][i]);
+		    indice = Integer.parseInt(infos.get(i)[0]);
 		    file.seek(indice*f.getTaillePiece());
-		    file.writeBytes(infos[0][i]);
+		    file.writeBytes(infos.get(i)[1]);
 		    //file.write(infos[i][1].getBytes());
 		    masque[indice] = true;
 		}
 		file.close();
-	    } catch (IOException ioe) { System.out.println("ioe in enregistrer" + ioe); }
+	    } catch (IOException ioe) { 
+		System.out.println("ioe in enregistrer" + ioe);
+		ioe.printStackTrace();
+	    }
 
 	} else { System.out.println("premier para de enregistrer foireux"); }
 	f.setMasque(masque);
@@ -175,7 +171,9 @@ public class ToolsTelechargementThread extends Thread {
 		tmp++; 
 		if (tmpAttente>0)
 		    try{Thread.sleep(tmpAttente);}
-		    catch(InterruptedException ite){}				
+		    catch(InterruptedException ite){
+			ite.printStackTrace();
+		    }				
 	    }
 	}
 	if (tmp <= nbIteration)
@@ -201,7 +199,9 @@ public class ToolsTelechargementThread extends Thread {
 	res = in.read();
 	// on laisse un peu de temps pour réceptioner toutes les données (??)
 	try{Thread.sleep(100);}
-	catch(InterruptedException ite){}		
+	catch(InterruptedException ite){
+	    ite.printStackTrace();
+	}		
 	
 	while (res != -1){
 	    b[0] = (byte)res; 
@@ -230,18 +230,19 @@ public class ToolsTelechargementThread extends Thread {
 
     
     // _fichierConf.getTaille()
-    static String [][] demanderPiece(String ip, int port, String question, int nbIteration, int tmpAttente) throws UnknownServiceException, CharConversionException {    
-	String [][] reponse = null;
+    static List<String[]> demanderPiece(String ip, int port, String question, int nbIteration, int tmpAttente, int taille_totale) throws UnknownServiceException, CharConversionException {    
+	List<String[]> reponse = null;
 	int tmp = 0;
 	while (tmp < nbIteration){
 	    try { 
-		reponse = demanderPieceIntermediaire(ip, port, question);
+		reponse = demanderPieceIntermediaire(ip, port, question, taille_totale);
 		tmp = nbIteration*2; 
 	    } catch (IOException ioe) { 
 		tmp++; 
 		if (tmpAttente>0)
 		    try{Thread.sleep(tmpAttente);}
 		    catch(InterruptedException ite){}				
+		ioe.printStackTrace();
 	    }
 	}
 	if (tmp <= nbIteration)
@@ -250,27 +251,35 @@ public class ToolsTelechargementThread extends Thread {
 	return reponse;
     }
     
-    static String [][] demanderPieceIntermediaire(String ip, int port, String question) throws IOException, CharConversionException {
+    static List<String[]> demanderPieceIntermediaire(String ip, int port, String question, int taille_totale) throws IOException, CharConversionException {
 	System.out.println("Essai de connexion au serveur " + ip + " " + port + " ...");
 	Socket socket = new Socket(ip,port); 	
-	System.out.println("Connexion au serveur " + ip + "/" + port);
+	System.out.println("Connexion au serveur " + ip + " " + port);
 	InputStream in   = socket.getInputStream();  // read-skip-close
 	OutputStream out = socket.getOutputStream(); // write-flush-close
 	
 	out.write(question.getBytes());
 	out.flush();
 	System.out.println(">> " + question);
-	String reponse = new String("");
-	String [][] reponse_partielle = new String[2][];
+	String reponse = new String(""); // , indice = new String("");
+	//	String [][] reponse_partielle = new String[2][];
+	List<String[]> reponse_partielle = new ArrayList<String[]>();
+	
+	
 	byte[] b = {0};
 	byte[] piece = new byte[_fichierConf.getTaille()];
 	int res, compteur = 0;
+	int last_indice = (int) Math.floor( ((double)taille_totale) / _fichierConf.getTaille());
+	//	int last_taille = 
+	byte[] last_piece = new byte[taille_totale % _fichierConf.getTaille() ];
 	int i = 0;
 
 	res = in.read();
 	// on laisse un peu de temps pour réceptioner toutes les données (??)
 	try{Thread.sleep(100);}
-	catch(InterruptedException ite){}		
+	catch(InterruptedException ite){
+	    ite.printStackTrace();
+	}		
 	
 
 	while (res != -1 && compteur < 2){
@@ -293,35 +302,56 @@ public class ToolsTelechargementThread extends Thread {
 	res = in.read(); 
 	while (res != -1) {
 	    // On initialise
-	    System.out.println("i =" + i);
-	    reponse_partielle[0][i] = new String(""); 
-	    reponse_partielle[1][i] = new String("");
+	    // System.out.println("i =" + i);
+	    
+	    reponse_partielle.add(i,new String[2]);
 
 	    // On lit l'indice
+	    //	    indice = "";
+	    reponse_partielle.get(i)[0] = new String("");
 	    while (res != -1 && '0'<=res && res<='9') {
 		b[0] = (byte)res; 
-		reponse_partielle[0][i] = new String(b);
-	        res = in.read(); 
+		reponse_partielle.get(i)[0] += new String(b);
+		res = in.read(); 
 	    }
+	    
+
 	    if (res != ':')
 		throw new CharConversionException("message data erroné");
 	    // On lit la taille d'une pièce
-	    res = in.read(piece); 
-	    reponse_partielle[1][i] = new String(piece);
-	    // On lit un espace
+	    //	    System.out.println("last = " + last_indice + "|" + "indice = " + Integer.parseInt(reponse_partielle.get(i)[0]) );
+	    if (last_indice != Integer.parseInt(reponse_partielle.get(i)[0])){
+		res = in.read(piece); 		
+		reponse_partielle.get(i)[1] = new String(piece);
+		System.out.println("rep partielle "+ i + " :" + reponse_partielle.get(i)[1]);
+	    }
+	    else {
+		res = in.read(last_piece);
+		reponse_partielle.get(i)[1] = new String(last_piece);
+		System.out.println("rep partielle "+ i + " :'" + reponse_partielle.get(i)[1] + "'");
+	    }
+	    // On lit un espace ou un crochet
 	    res = in.read(); 
-	    b[0] = (byte)res; 
-	    reponse += new String(b);
-	    if (reponse.length()-1 != reponse.indexOf(" ", reponse.length()-1))
-		throw new CharConversionException("message data erroné");
-	    if (reponse.length()-1 == reponse.indexOf("]", reponse.length()-1))
+	    //b[0] = (byte)res; 
+	    if (res != ' ' && res != ']')    
+		System.out.println("problème de lecture : '" + (char)res + "' ou " + res);
+		//throw new CharConversionException("message data erroné");
+	    if (res == ']') 
 		res = -1;
 	    else res = in.read(); 
 	    i++;
 	}
 	
 	out.close(); in.close(); socket.close();
-	System.out.println("<< " + reponse);	
+
+	System.out.print("<< " + reponse);
+	for (i=0 ; i<reponse_partielle.size() ; i++) {
+	    System.out.print(reponse_partielle.get(i)[0] + ":" + reponse_partielle.get(i)[1]);
+	    if (i<reponse_partielle.size()-1)
+		System.out.print(" ");
+	    else System.out.println("]");
+	}
+		
 	System.out.println("Déco du serveur " + ip + " " + port);
 	return reponse_partielle;
     }

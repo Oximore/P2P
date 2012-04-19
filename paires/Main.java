@@ -14,10 +14,23 @@ public class Main{
     public static void main(String[] args){
 	System.out.println("Essais");
 
+
+	char c = ' ', cr = ']';
+	System.out.println("un espace et un crochet:" + c + cr );
+	
+	char a = 4, b = 3;
+	System.out.println("3 et 4:" + a + " et " + b );
+
+	String mot = "Blablabla";
+	System.out.println(mot + " sans la dernière lettre est : " + mot.substring(0,mot.length()-1));
+
+
+	System.out.println(" 3 % 5 = " + (3%5));
+	System.out.println(" 14 % 5 = " + (14%5));
 	int i = 10, j = 5;
 	
-	System.out.println("truc".indexOf("t"));
-	System.out.println("truc".indexOf("t",0));
+	//	System.out.println("truc".indexOf("t"));
+	//System.out.println("truc".indexOf("t",0));
 	
 	/*	
 	System.out.println("12/5 \t\t\t\t= " + (i/j));

@@ -115,16 +115,7 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 			    else
 				tabMasque[j][i] = false;
 			}
-			/*
-			for ( j=0 ; j<tabMasque.length ; j++){
-			    if (tabMasque[][j])
-				System.out.print(1);
-			    else
-				System.out.print(0);
-			}
-			System.out.println("°°°°");*/
 		    }
-
 		    System.out.println("Création du fichier Download/" + name_file_to_dl);
 		    Fichier newfichier = new Fichier(name_file_to_dl , key_to_dl, taille_tmp , taille_piece_tmp);
 		    _hash.put(key_to_dl, newfichier);
@@ -143,9 +134,11 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 		resultat = -1;
 	    } catch (UnknownServiceException se) {
 		System.out.println("Un serveur n'as pas pu être trouvé : " + se);
+		se.printStackTrace();
 		//      return ;
 	    } catch (CharConversionException ce) {
 		System.out.println("Réponse d'un serveur mal formée : " + ce);
+		ce.printStackTrace();
 		//	    return ;
 	    } catch (Exception e) {
 		System.out.println("Exception : " + e);

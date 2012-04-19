@@ -2,4 +2,4 @@ IP : 127.0.0.1
 Port : 60025
 Nb Connexion : 14
 Tmp Refresh : 1
-taille : 8
+taille : 2048
