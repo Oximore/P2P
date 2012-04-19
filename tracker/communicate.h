@@ -5,7 +5,7 @@
 
 
 void update_diff(struct file_list* new, struct file_list* old,struct file_list* file_list, struct peer* peer);
-
+int get_refresh_time();
 int communicate(struct donnees* donnees);
 void end(struct client* client, struct client_tab* tab);
 char* fusion_keys_string(char* seed, char* leech);

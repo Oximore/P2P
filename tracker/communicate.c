@@ -5,10 +5,11 @@
 #include "structure.h"
 #include "interface.h"
 #include <string.h>
+#include <math.h>
 
 #define RECV_BUF_SIZE 4096
-//#define SEND_BUF_SIZE 4096
-#define IDLE_TIME // en secondes
+#define SEND_BUF_SIZE 4096
+
 /*
 int main()
 {
@@ -17,14 +18,16 @@ int main()
 */
 int communicate(struct donnees* donnees)
 {
+  printf("communicate\n");
   struct client* client=donnees->client;
   ulong ip = client->sockaddr->sin_addr.s_addr;
   struct peer* peer = find_peer(donnees->peer_list, ip);
   struct file_list* file_list = donnees->file_list;
   struct peer_list* peer_list = donnees->peer_list;
-  
+  int refresh_time=get_refresh_time();
+  printf("refresh time:%d\n",time_out);
   char* recv_buffer= malloc(sizeof(char)*RECV_BUF_SIZE);
-  
+  char* send_buffer= malloc(sizeof(char)*SEND_BUF_SIZE);  
   char* s1 = malloc(RECV_BUF_SIZE);
   char* s2 = malloc(RECV_BUF_SIZE);
   char* s3 = malloc(RECV_BUF_SIZE);
@@ -45,15 +48,16 @@ int communicate(struct donnees* donnees)
   int decalage;
   int length;
   int piece_size;
-   
+
+
   while(1)
     {
-      
-      
+      recv_buffer[0]='\0';
+      send_buffer[0]='\0';
       read=read_client(client->sock, recv_buffer);
       if(read > 0)
 	{
-	  
+	  printf("received:\n");
 	  switch(recv_buffer[0])
 	    {
 	    case'a':
@@ -63,7 +67,8 @@ int communicate(struct donnees* donnees)
 		  decalage+=read;
 		  read=read_client(client->sock, recv_buffer + decalage);
 		}	  
-	      recv_buffer[decalage+read]='\0';// not sure
+	      recv_buffer[decalage+read]='\0';
+	      printf("%s\n", recv_buffer);
 	      parse(recv_buffer, tab);
 	      port = atoi(s2);
 	      if(strcmp(s0,"announce")==0 && strcmp(s1,"listen")==0 && strcmp(s3,"seed")==0 && strcmp(s5,"leech")==0)
@@ -98,6 +103,8 @@ int communicate(struct donnees* donnees)
 		  update_add(file_list, peer, f_add);
 		  file_list_delete(f_add);
 		  write_client(client->sock, "ok");
+		  printf("replied\n");
+		  
 		}
 	      break;
 	      
@@ -108,24 +115,96 @@ int communicate(struct donnees* donnees)
 		  decalage+=read;
 		  read=read_client(client->sock, recv_buffer + decalage);
 		}	  
-	      recv_buffer[decalage+read]='\0'; //not sure
+	      recv_buffer[decalage+read]='\0'; 
+	      printf("%s\n", recv_buffer);	      
 	      parse(recv_buffer, tab);
 	      if(strcmp(s0,"update")==0 && strcmp(s1,"seed")==0 && strcmp(s3,"leech")==0)
 		{
-		  if(peer==NULL){end(client, donnees->ct); return 0;}//ferme la socket
+		  if(peer==NULL){
+		    end(client, donnees->ct);
+		    printf("le pair n'existe pas...\n");
+		    return 0;}//ferme la socket
 		  else
 		    { 
+		      printf("le pair existe\n");
 		      char* res=fusion_keys_string(s2, s4);
 		      struct file_list* f = keys_string_to_file_list(res);
 		      update_diff(f, peer->file_list, file_list, peer);
 		      file_list_delete(f);
 		      free(res);
 		      write_client(client->sock, "ok");
+		      printf("replied\n");
+		  
 		    }	    
 		}
-	      
 	      break;
 	      
+	    case'l':
+	      decalage=0;
+	      while(compte_crochet_fermant(recv_buffer)<1)
+		{
+		  decalage+=read;
+		  read=read_client(client->sock, recv_buffer + decalage);
+		}	  
+	      recv_buffer[decalage+read]='\0'; 
+	      printf("%s\n", recv_buffer);	      
+	      parse(recv_buffer, tab);
+	      if(strcmp(s0,"look")==0)
+		{
+		  char* filename="filename";
+		  int egal=1;
+		  int i;
+		  s2[0]='\n';
+		  for(i=0;i<8;i++)
+		    {
+		      if(s1[i]!=filename[i]) egal --;
+		    }
+		  if(egal==1)
+		    {
+		      for(i=10;i<strlen(s1)-1;i++)
+			{
+			  s2[i-10]=s1[i];
+			}
+		      s2[strlen(s1)-11]='\0';
+		      
+		      printf("recherche:\nfilename=%s\n",s2);
+		      file* file=find_file_name(file_list, s2);
+		      if(file==NULL) write_client(client->sock, "list []");
+		      else
+			{
+			  sprintf(send_buffer, "list [%s %d %d %s]", s2, file->length, file->p_size, file->key);
+			  write_client(client->sock, send_buffer);
+			  printf("replied");
+			}
+		    }
+		}
+	      break;
+
+	    case'g':
+	      decalage=0;
+	      while(compte_crochet_fermant(recv_buffer)<1)
+		{
+		  decalage+=read;
+		  read=read_client(client->sock, recv_buffer + decalage);
+		}	  
+	      recv_buffer[decalage+read]='\0'; 
+	      printf("%s\n", recv_buffer);	      
+	      parse(recv_buffer, tab);
+	      if(strcmp(s0,"getfile")==0)
+		{
+		  file* file=find_file(file_list, s1);
+		  if(file==NULL)
+		    {
+		      sprintf(send_buffer, "peers %s []", s1);
+		      write_client(client->sock, send_buffer);
+		    }
+		  else
+		    {
+		      ////////////////////////////////////
+		    }
+		}
+	      break;
+
 	    default:
 	      printf("entree non valide");
 	      end(client,donnees->ct);
@@ -139,7 +218,17 @@ int communicate(struct donnees* donnees)
     }
   return EXIT_SUCCESS;
 }
-  
+
+int get_refresh_time()// en seconde
+{
+  const char r[2]="r\0";
+  FILE * f = fopen("./config.txt",r);
+  int p;
+  int t;
+  fscanf(f,"%d %d",&p, &t);
+  return t;
+}
+ 
 void end(struct client* client, struct client_tab* ct)
   {
     close(client->sock);
