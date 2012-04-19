@@ -1,6 +1,6 @@
 #include "interface.h"
-//#include "list.h"
-//#include "base.h"
+#include "structure.h"
+#include "communicate.h"
 
 
 int com(struct donnees * d)
@@ -35,7 +35,7 @@ void server(struct donnees * d)
 	      exit(errno);
 	    }
 	  d->client = c;
-	  int p = pthread_create(c->t,NULL,(void *(*)(void *))&com, (void *)d);
+	  int p = pthread_create(c->t,NULL,(void *(*)(void *))&communicate, (void *)d);
 	  if(p != 0)
 	    {
 	      perror("pthread_create()");

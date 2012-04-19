@@ -9,15 +9,19 @@
 #define RECV_BUF_SIZE 4096
 //#define SEND_BUF_SIZE 4096
 #define IDLE_TIME // en secondes
-
-
+/*
+int main()
+{
+  return 0;
+}
+*/
 int communicate(struct donnees* donnees)
 {
   struct client* client=donnees->client;
   ulong ip = client->sockaddr->sin_addr.s_addr;
   struct peer* peer = find_peer(donnees->peer_list, ip);
   struct file_list* file_list = donnees->file_list;
-  struct file_list* peer_list = donnees->peer_list;
+  struct peer_list* peer_list = donnees->peer_list;
   
   char* recv_buffer= malloc(sizeof(char)*RECV_BUF_SIZE);
   
@@ -73,11 +77,11 @@ int communicate(struct donnees* donnees)
 		    {
 		      if(compte_espace(s4)>3)
 			{		 
-			  sscanf(s4, "%s %d %d %s %s", s1, length, piece_size, s2, s4);
+			  sscanf(s4, "%s %d %d %s %s", s1, &length, &piece_size, s2, s4);
 			}
 		      else
 			{
-			  sscanf(s4, "%s %d %d %s", s1, length, piece_size, s2);
+			  sscanf(s4, "%s %d %d %s", s1, &length, &piece_size, s2);
 			  s4[0]='\0';			
 			}
 		      //si le fichier n'existe pas on le cree
@@ -147,11 +151,11 @@ void update_diff(struct file_list* new, struct file_list* old, struct file_list*
   struct file_list* f_add=file_list_copy(new);
   struct file_list* f_delete=file_list_copy(old);
   //le diff
-  if(f_add->first == NULL) update_delete(f_delete);
+  if(f_add->first == NULL) update_delete(file_list, peer, f_delete);
   else 
     {
       struct file* aux_file=f_add->first;
-      struct aux_file2=NULL;      
+      struct file* aux_file2=NULL;      
       while(aux_file!=NULL)
 	{
 	  aux_file2=find_file(f_delete, aux_file->key);
@@ -191,7 +195,7 @@ char* fusion_keys_string(char* seed, char* leech)
     {
       res[i+seed_l+esp_dec]=leech[i];
     }
- res[seed_l+leech_l+esp_des]='\0';
+ res[seed_l+leech_l+esp_dec]='\0';
  return res;
 }
 
