@@ -242,6 +242,21 @@ struct file * find_file(struct file_list * b,char * key)
 }
 
 
+struct file * find_file_name(struct file_list * b,char * name)
+{
+  if(b==NULL)
+    return NULL;
+  if(b->first==NULL)
+    return NULL;
+  struct elt_file * p= b->first;
+  while(p!=NULL)
+    {
+      if(!strcmp(p->file->name,name))
+	return p->file;
+      p=p->next;
+    }
+  return NULL;
+}
 
 // Renvoie 0 si on trouve le peer dans une liste de peer
 // 1 sinon

@@ -64,6 +64,7 @@ void file_list_delete(struct file_list *);//delete une file_list
 void file_list_add(struct file_list *, struct file *);//add un file à la file_list
 void file_list_file_delete(struct peer_list *,struct file_list *,char *);//delete le file désigné par son ip
 struct file * find_file(struct file_list *,char *);//trouve le file avec sa clé
+struct file * find_file_name(struct file_list * ,char * );
 int get_peer(struct peer_list *, struct peer *);//enleve un peer d'une peer_list (ne touche pas à la file_list!)
 int get_file(struct file_list *, struct file *);//enleve un file d'une file_list (ne touche pas à la peer_list!)
 void delete_peer_pointer(struct peer *, struct file_list *);// enleve p de ttes les peer_list de f : utilise get_peer
