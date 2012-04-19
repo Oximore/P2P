@@ -18,38 +18,28 @@ public class Serveur extends Thread {
     private FichierConfiguration _fichierConf;
     private int _localPort;
     
-    // private int _connexions_max;
-    // private int _tmp_refresh;
-    // private String _ip_tracker;
-    // private int _port_tracker;
-
     // @localPort : 0 pour ne pas choisir
-    public Serveur(String name, Hashtable hash, FichierConfiguration fichierConf, int localPort) { //String ip, int port, int tmp_refresh, int connexions_max){
+    public Serveur(String name, Hashtable hash, FichierConfiguration fichierConf, int localPort) { 
 	super(name);
 	_hash = hash;
 	_fichierConf = fichierConf;
 	_localPort = localPort;
-	// _connexions_max = connexions_max;
-	// _tmp_refresh = tmp_refresh;
-	// _ip_tracker = ip;
-	// _port_tracker = port;
     }
 
     
     public void run() {
-	System.out.println("Début serveur");
+	System.out.print("Mise en route du serveur");
 	try {
 	    // Sélectionne un port libre ? entre "60000" et "60025"
 	    ServerSocket serveur = new ServerSocket(_localPort); // (60022);
 	    serveur.setSoTimeout(1000);
-	    System.out.println("Mon port d'écoute est : " + serveur.getLocalPort());
+	    System.out.println(" (port:" + serveur.getLocalPort() + ")");
 
 	    // Lancement du Thread 3
 	    MiseAJour maj = new MiseAJour("Thread 3", _hash, _fichierConf.getIp(), _fichierConf.getPort(), serveur.getLocalPort(), _fichierConf.getTmp());
 	    maj.start();
 
 	    while (true){
-		//System.out.println(".");
 		attendre(serveur);
 	    }
 	}
@@ -70,7 +60,6 @@ public class Serveur extends Thread {
 	    return 0;
 	}
 	catch(IOException e){ 
-	    //System.out.println("IOE exception in attendre :" + e);
 	    return 1;
 	}
     }

@@ -40,6 +40,16 @@ class Fichier{
     public String getName() { return _nom; }
     public long getTaille() { return _taille; }
     public int  getTaillePiece() { return _taille_piece; }
+    public int getPourcentage() {
+	if (_masque.length == 0)
+	    return 100;
+	int nb =  0;
+	for (int i=0; i<_masque.length ; i++)
+	    if (_masque[i])
+		nb++;
+	return (nb*100) /_masque.length ; 
+    }
+    
     
     public void setMasque(boolean[] buffer) { _masque = buffer.clone(); }
     public void setTaillePiece(int taillePieces) { _taille_piece = taillePieces; }

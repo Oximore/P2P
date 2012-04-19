@@ -36,14 +36,12 @@ public class Pair{
 	// use :"File[] listFiles(FileFilter filter)" 
 	File[] list = repertoire.listFiles();
 
-	//Hashtable collection = new Hashtable(2*list.length, (float)0.75);
 	Hashtable<String,Fichier> collection = new Hashtable<String,Fichier> (2*list.length, (float)0.75);
 	
 	for ( int i = 0; i < list.length ; i++) {
 	    // si ce n'est pas un fichier caché
 	    if ( list[i].exists() & list[i].getName().indexOf(".") != 0 ) {
 		remplire(list[i], collection, fichierConf.getTaille());
-		System.out.println(list[i].getName());
 	    }
 	}
 
@@ -56,11 +54,10 @@ public class Pair{
 	    localPort = Integer.parseInt(args[0]); 
 	}
 
-	//	Serveur th2 = new Serveur("String name", collection, fichierConf.getIp(), fichierConf.getPort(), fichierConf.getTmp(), fichierConf.getNbConnexion());
 	Serveur th2 = new Serveur("String name", collection, fichierConf, localPort);
 	th2.start();
 	
-	/* * /
+	/** /
 	System.out.println("\nReprise du téléchargement des fichiers non complets");    
 	RepriseTelechargement th6 = new RepriseTelechargement("th6", fichierConf, collection);
 	th6.run();	
@@ -70,10 +67,10 @@ public class Pair{
 	System.out.println("\nProgramme utilisateur");    
 	ThreadUtilisateur th4 = new ThreadUtilisateur("th4", fichierConf, collection);
 	th4.run();	
-	System.out.println("Fin du programme utilisateur\n");    
+	System.out.println("Fin du programme utilisateur");    
 	
 	sauver(collection);
-	System.out.println("\nFin du programme Pair");    
+	System.out.println("Fin du programme Pair");    
 	System.exit(0);
     }
     
@@ -93,12 +90,10 @@ public class Pair{
 	boolean [] masque = null;
 	// Si le fichier caché existe on récupère le masque
 	if (fichierCache.exists()){
-	    
 	    try {
 		RandomAccessFile raf_fichierCache = new RandomAccessFile(fichierCache,"r") ;
 		String strMasque = raf_fichierCache.readLine() ;
-		//System.out.println(strMasque);
-		
+				
 		masque = new boolean[strMasque.length()];
 		for (int i=0 ; i<strMasque.length() ; i++){
 		    if ((strMasque.indexOf('0',i)-i)==0){
@@ -129,7 +124,7 @@ public class Pair{
 		masque[i] = true;
 	}
 	element.setMasque(masque);
-	System.out.println("Chargement en mémoire du fichier : " + element.getName());
+	System.out.println("Chargement en mémoire du fichier : " + element.getName() + " [" + element.getPourcentage() + "%]");
 	hash.put(key, element) ;
     }    
     
