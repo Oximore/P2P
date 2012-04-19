@@ -1,7 +1,8 @@
 #ifndef COMMUNICATE_H
 #define COMMUNICATE_H
-#include "interface.h"
 #include "structure.h"
+#include "interface.h"
+
 
 void update_diff(struct file_list* new, struct file_list* old,struct file_list* file_list, struct peer* peer);
 

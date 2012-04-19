@@ -1,7 +1,5 @@
 #include "interface.h"
-#include "structure.h"
 #include "communicate.h"
-
 
 int com(struct donnees * d)
 {

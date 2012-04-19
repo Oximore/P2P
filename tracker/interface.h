@@ -12,11 +12,12 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-//#include "communicate.h"
 #include "structure.h"
+//#include "communicate.h"
+
 
 #define MAX 20
-//#define PORT 1564
+
 #define BUF_SIZE 1024
 
 struct client
@@ -42,11 +43,6 @@ struct donnees
   struct sockaddr_in * sockaddr;
 };
 
-// ne sert a rien
-struct donnees_function{
-  struct donnees * _ref;
-  struct client * current;
-};
 
 
 struct client_tab * client_tab_init();
