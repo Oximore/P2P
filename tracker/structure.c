@@ -102,7 +102,6 @@ void peer_list_peer_delete(struct peer_list * l,struct file_list * f,unsigned lo
 struct peer * peer_init(unsigned long ip_address, int port)
 {
   struct peer * p=malloc(sizeof(struct peer));
-  //p->next=NULL;
   p->ip_address = ip_address;
   p->port=port;
   p->time = 0;
@@ -110,15 +109,23 @@ struct peer * peer_init(unsigned long ip_address, int port)
   return p;
 }
 
-struct peer * peer_delete(struct peer * p, struct file_list * f)
+int peer_delete(struct peer * p, struct file_list * f)
 {
-  //struct peer * p2 = p->next;
   if(f!=NULL)
     delete_peer_pointer(p,f);
   if(p->file_list != NULL)
-    free(p->file_list);//il faut free les elt
+    {
+      struct elt_file * tmp = p->file_list->first;
+      while(tmp!=NULL)
+	{
+	  p->file_list->first = tmp->next;
+	  free(tmp);
+	  tmp = p->file_list->first;
+	}
+      free(p->file_list);
+    }
   free(p);
-  return NULL;//changer les val de ret
+  return 0;
 }
 
 struct peer * find_peer(struct peer_list * l,unsigned long ip)
@@ -143,7 +150,6 @@ struct peer * find_peer(struct peer_list * l,unsigned long ip)
 struct file * file_init(char * key,char * name, int length, int p_size)
 {
   struct file * e = malloc(sizeof(struct file));
-  //e->next = NULL;
   e->key=key;
   e->name=name;
   e->length=length;
@@ -152,16 +158,25 @@ struct file * file_init(char * key,char * name, int length, int p_size)
   return e;
 }
 
-struct file * file_delete(struct file * e,struct peer_list * p)
+int file_delete(struct file * e,struct peer_list * pl)
 {
-  //struct file * e2 = e->next;
-  if(p!=NULL)
-    delete_file_pointer(e,p);//a modifier
+  if(pl!=NULL)
+    delete_file_pointer(e,pl);
   free(e->key);
   free(e->name);
   if(e->peer_list!=NULL)
-    free(e->peer_list);// a free proprement
-  return NULL;
+    {
+      struct elt_peer * tmp = e->peer_list->first;
+      while(tmp!=NULL)
+	{
+	  e->peer_list->first = tmp->next;
+	  free(tmp);
+	  tmp = e->peer_list->first;
+	}
+      free(e->peer_list);
+    }
+  free(e);
+  return 0;
 }
 
 struct file_list * file_list_init()
