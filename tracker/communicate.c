@@ -35,6 +35,7 @@ int communicate(struct donnees* donnees)
   char* s5 = malloc(RECV_BUF_SIZE*sizeof(char));
   char* s6 = malloc(RECV_BUF_SIZE*sizeof(char));
   char* s0 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char* saux = malloc(RECV_BUF_SIZE*sizeof(char));
   char** tab = malloc(7*sizeof(char *));;
   tab[0]=s0;
   tab[1]=s1;
@@ -83,32 +84,47 @@ int communicate(struct donnees* donnees)
 		      peer = peer_init(ip, port);
 		      peer_list_add(peer_list, peer);
 		    }
-		  while(strlen(s4) > 0)
+		  int i=0;
+		  while(strlen(s4+i) > 0)
 		    {
-		      if(compte_espace(s4)>3)
+		      if(compte_espace(s4+i)>3)
 			{		 
-			  sscanf(s4, "%s %d %d %s %s", s1, &length, &piece_size, s2, s4);
+			  
+			  sscanf(s4+i, "%s %d %d %s", s1, &length, &piece_size, s2);
+			  
+			  sprintf(saux, "%s %d %d %s", s1, length, piece_size, s2);
+			  struct file* file = find_file(file_list, s1);
+			  if(NULL == file)
+			    {
+			      file = remplit_file(s1, length, piece_size, s2);
+			      file_list_add(file_list, file);
+			    }
+			  add_link(file, peer); 
+			  i=strlen(saux)+1;
+			  
 			}
 		      else
 			{
-			  sscanf(s4, "%s %d %d %s", s1, &length, &piece_size, s2);
-			  s4[0]='\0';			
+			  
+			  sscanf(s4+i, "%s %d %d %s", s1, &length, &piece_size, s2); 
+			  struct file* file = find_file(file_list, s1);
+			  if(NULL == file)
+			    {
+			      file = remplit_file(s1, length, piece_size, s2);
+			      file_list_add(file_list, file);
+			    }
+			  add_link(file, peer); 
+			  s4[i]='\0';			
 			}
 		      //si le fichier n'existe pas on le cree
-		      struct file* file = find_file(file_list, s1);
-		      if(NULL == file)
-			{
-			  file = remplit_file(s1, length, piece_size, s2);
-			  file_list_add(file_list, file);
-			}
-		      add_link(file, peer); 
 		    }
 		  struct file_list* f_add = keys_string_to_file_list(s6);
 		  //on suppose qu'il ne leech pas un fichier qu'il a declare avoir...
 		  update_add(file_list, peer, f_add);
 		  file_list_delete(f_add);
 		  write_client(client->sock, "ok");
-		  printf("replied:%s\n", send_buffer);
+		  print_data(file_list, peer_list);
+		  printf("replied:ok\n");
 		  
 		}
 	      break;
@@ -138,7 +154,7 @@ int communicate(struct donnees* donnees)
 		      file_list_delete(f);
 		      free(res);
 		      write_client(client->sock, "ok");
-		      printf("replied:%s\n", send_buffer);
+		      printf("replied:ok\n");
 		  
 		    }	    
 		}
@@ -408,7 +424,7 @@ void parse(char* buf, char** tab)
        i++;
     }
   tab[k][j]='\0';
-  printf("s%d:%s\n", k, tab[k]);
+  //printf("s%d:%s\n", k, tab[k]);
   while(k<6)
     { 
       k++;
