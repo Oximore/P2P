@@ -121,15 +121,12 @@ int communicate(struct donnees* donnees)
 		      peer->time=1;
 		    }
 		  int i=0;
-		  printf("coucou %s\n",s4+i);
 		  while(strlen(s4+i) > 0)
 		    {
 		      if(compte_espace(s4+i)>3)
 			{		 
 			  
 			  sscanf(s4+i, "%s %d %d %s", s1, &length, &piece_size, s2);
-			  printf("coucou %s\n",s4+i);
-			  
 			  sprintf(saux, "%s %d %d %s", s1, length, piece_size, s2);
 			  struct file* file = find_file(file_list, s1);
 			  if(NULL == file)
