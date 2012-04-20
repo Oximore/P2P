@@ -23,11 +23,14 @@ public class ToolsTelechargementThread extends Thread {
     // Quelle portée ?
     static FichierConfiguration _fichierConf;
     Hashtable<String,Fichier> _hash;
-
+    static boolean _estMisAssertion;
+    
     public ToolsTelechargementThread(String name, FichierConfiguration fichierConf, Hashtable<String,Fichier> hash){
 	super(name);
 	_fichierConf = fichierConf;
 	_hash        = hash;
+	_estMisAssertion = false;
+	assert _estMisAssertion = true;
     }
     
     // @info : couples Ip/Port 
@@ -75,12 +78,13 @@ public class ToolsTelechargementThread extends Thread {
 	int i = 0 , max;
 	String reponse = "", question = "";
 	List<String[]> reponse_partielle;
-	boolean bool;
-	
+	boolean bool;	
+	Fichier file = (Fichier)_hash.get(key);
+
 	while (i < masque.length) {	
 	    reponse = "";
 	    question = new String("getpieces " + key + " [");
-	    max = 150;
+	    max = 25; // Combien par combien je télécharge
 	    bool = false;
 	    
 	    for (int j = i; j<masque.length & 0<max ; j++ ){
@@ -94,13 +98,12 @@ public class ToolsTelechargementThread extends Thread {
 	    question = question.trim() + "]";
 	    
 	    if (bool){
-		Fichier file = (Fichier)_hash.get(key);
 		if (file == null)
 		    System.out.println("Gros problème !");
 		
 		reponse_partielle =  demanderPiece(ip, port, question, 5, 1000, (int) file.getTaille() );
 		enregistre(file, reponse_partielle);
-		
+		System.out.println(file.getPourcentage() + "%");
 
 		// *TODO* à virer ?
 		try{Thread.sleep(100);}
@@ -112,7 +115,7 @@ public class ToolsTelechargementThread extends Thread {
     }
     
     static void enregistre(Fichier f, List<String[]> infos){ // String [][] infos){
-	System.out.println("fonction enregistre");
+	//System.out.println("fonction enregistre");
 	int indice;
 	boolean [] masque  = f.getMasque();
 
@@ -169,15 +172,18 @@ public class ToolsTelechargementThread extends Thread {
 
     
     static String demanderQuestion(String ip, int port, String question, boolean attCrochets, int nombreMot) throws IOException {
-	System.out.println("Essai de connexion au serveur " + ip + " " + port + " ...");
+	if (_estMisAssertion) 
+	    System.out.println("Essai de connexion au serveur " + ip + " " + port + " ...");
 	Socket socket = new Socket(ip,port); 	
-	System.out.println("Connexion au serveur " + ip + "/" + port);
+	if (_estMisAssertion) 
+	    System.out.println("Connexion au serveur " + ip + " " + port);
 	InputStream in   = socket.getInputStream();  // read-skip-close
 	OutputStream out = socket.getOutputStream(); // write-flush-close
 	
 	out.write(question.getBytes());
 	out.flush();
-	System.out.println(">> " + question);
+	if (_estMisAssertion) 
+	    System.out.println(">> " + question);
 	String reponse = new String("");
 	byte[] b = {0};
 	int res, compteur = 0;
@@ -207,8 +213,10 @@ public class ToolsTelechargementThread extends Thread {
 	}
 	
 	out.close(); in.close(); socket.close();
-	System.out.println("<< " + reponse);	
-	System.out.println("Déco du serveur " + ip + "/" + port);
+	if (_estMisAssertion) 
+	    System.out.println("<< " + reponse);	
+	if (_estMisAssertion) 
+	    System.out.println("Déco du serveur " + ip + "/" + port);
 	return reponse;
     }
 
@@ -234,15 +242,18 @@ public class ToolsTelechargementThread extends Thread {
     }
     
     static List<String[]> demanderPieceIntermediaire(String ip, int port, String question, int taille_totale) throws IOException, CharConversionException {
-	System.out.println("Essai de connexion au serveur " + ip + " " + port + " ...");
+	if (_estMisAssertion) 
+	    System.out.println("Essai de connexion au serveur " + ip + " " + port + " ...");
 	Socket socket = new Socket(ip,port); 	
-	System.out.println("Connexion au serveur " + ip + " " + port);
+	if (_estMisAssertion)
+	    System.out.println("Connexion au serveur " + ip + " " + port);
 	InputStream in   = socket.getInputStream();  // read-skip-close
 	OutputStream out = socket.getOutputStream(); // write-flush-close
 	
 	out.write(question.getBytes());
 	out.flush();
-	System.out.println(">> " + question);
+	if (_estMisAssertion) 
+	    System.out.println(">> " + question);
 	String reponse = new String(""); 
 	List<String[]> reponse_partielle = new ArrayList<String[]>();
 	
@@ -298,12 +309,12 @@ public class ToolsTelechargementThread extends Thread {
 	    if (last_indice != Integer.parseInt(reponse_partielle.get(i)[0])){
 		res = in.read(piece); 		
 		reponse_partielle.get(i)[1] = new String(piece);
-		System.out.println("rep partielle "+ i + " :" + reponse_partielle.get(i)[1]);
+		//System.out.println("rep partielle "+ i + " :" + reponse_partielle.get(i)[1]);
 	    }
 	    else {
 		res = in.read(last_piece);
 		reponse_partielle.get(i)[1] = new String(last_piece);
-		System.out.println("rep partielle "+ i + " :'" + reponse_partielle.get(i)[1] + "'");
+		//System.out.println("rep partielle "+ i + " :'" + reponse_partielle.get(i)[1] + "'");
 	    }
 	    // On lit un espace ou un crochet
 	    res = in.read(); 
@@ -317,16 +328,17 @@ public class ToolsTelechargementThread extends Thread {
 	}
 	
 	out.close(); in.close(); socket.close();
-
-	System.out.print("<< " + reponse);
-	for (i=0 ; i<reponse_partielle.size() ; i++) {
-	    System.out.print(reponse_partielle.get(i)[0] + ":" + reponse_partielle.get(i)[1]);
-	    if (i<reponse_partielle.size()-1)
-		System.out.print(" ");
-	    else System.out.println("]");
+	if (_estMisAssertion)  {
+	    System.out.print("<< " + reponse);
+	    for (i=0 ; i<reponse_partielle.size() ; i++) {
+		System.out.print(reponse_partielle.get(i)[0] + ":" + reponse_partielle.get(i)[1]);
+		if (i<reponse_partielle.size()-1)
+		    System.out.print(" ");
+		else System.out.println("]");
+	    }
 	}
-		
-	System.out.println("Déco du serveur " + ip + " " + port);
+	if (_estMisAssertion) 		
+	    System.out.println("Déco du serveur " + ip + " " + port);
 	return reponse_partielle;
     }
 

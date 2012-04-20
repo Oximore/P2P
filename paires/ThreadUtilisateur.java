@@ -28,6 +28,9 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
     }
     
     public void run(){
+	boolean estMisAssertion = false;
+	assert estMisAssertion = true;
+	
 	// Pour ne pas surcharger out 
 	try{Thread.sleep(100);}
 	catch(InterruptedException ite){ 
@@ -126,19 +129,21 @@ public class ThreadUtilisateur extends ToolsTelechargementThread {
 				tabMasque[j][i] = false;
 			}
 		    }
-		    System.out.println("Création du fichier Download/" + name_file_to_dl);
+		    if (estMisAssertion)
+			System.out.println("Création du fichier Download/" + name_file_to_dl);
 		    Fichier newfichier = new Fichier(name_file_to_dl , key_to_dl, taille_tmp , taille_piece_tmp);
 		    _hash.put(key_to_dl, newfichier);
-		    System.out.println("Fichier crée.");
-
-		    System.out.println("APOCALIIIIPSE ! : " + tabMasque.length);
 		    
+		    if (estMisAssertion)
+			System.out.println("Fichier crée.");
+
 		    for ( i=0 ; i<tabMasque.length ; i++ ){
 			port_tmp = Integer.parseInt(info[i].split(":")[1]);
 			telecharger(info[i].split(":")[0], port_tmp, key_to_dl, tabMasque[i]);    
 			// sauve les données ?
 		    }
-		
+		    
+		    
 		    System.out.println("Fichier téléchargé");
 		}
 		resultat = -1;

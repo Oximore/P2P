@@ -19,8 +19,12 @@ import java.lang.Math;
 public class Pair{
     
     public static void main(String[] args){
+	boolean estMisAssertion = false;
+	assert estMisAssertion = true;
+
 	System.out.println("Lancement du programme Pair");
-	System.out.println("Veuillez patienter quelques instants ...\n");
+	if (estMisAssertion)
+	    System.out.println("Veuillez patienter quelques instants ...\n");
 
 	FichierConfiguration fichierConf = new FichierConfiguration("configuration.txt");
 	System.out.println(fichierConf);

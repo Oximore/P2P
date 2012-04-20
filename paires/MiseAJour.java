@@ -20,6 +20,7 @@ public class MiseAJour extends Thread {
     private int _tmp;
     private int _port_serveur;
     private Hashtable _hash;
+    private boolean _estMisAssertion;
 
     public MiseAJour(String name, Hashtable hash, String ip, int port, int port_serveur, int tmp_miseAJour){
 	super(name) ;
@@ -28,31 +29,39 @@ public class MiseAJour extends Thread {
 	_port = port;
 	_tmp  = tmp_miseAJour;
 	_port_serveur = port_serveur;
+	_estMisAssertion = false;
+	assert _estMisAssertion = true;
+
     }
     
     public void run(){
 	// On se déclare au tracker avec _port_serveur
-	System.out.println("Début Mise à Jour");
+	if (_estMisAssertion) 
+	    System.out.println("Début Mise à Jour");
 	try {
 	    Socket socket = new Socket(_ip, _port);
 	    if (socket == null){
-		System.out.println("Serveur not Found in MiseAJour");
+		if (_estMisAssertion) 
+		    System.out.println("Serveur not Found in MiseAJour");
 		return ;
 	    }
-	    System.out.println("Connexion établie in MiseAJour");
+	    if (_estMisAssertion) 
+		System.out.println("Connexion établie in MiseAJour");
 	
 	    InputStream in   = socket.getInputStream();  // aviable-close-read-skip
 	    OutputStream out = socket.getOutputStream(); // close-flush-write
 	    
 	    String listeFichiers = fichiersPresents(true);
 	    out.write(("announce listen " + _port_serveur + " " + listeFichiers).getBytes());
-	    System.out.println(">> announce listen " + _port_serveur + " " + listeFichiers);
+	    if (_estMisAssertion) 
+		System.out.println(">> announce listen " + _port_serveur + " " + listeFichiers);
 	    out.flush();
 	    waitOk(in);
 
 	    // On ferme la connexion
 	    out.close(); in.close(); socket.close();
-	    System.out.println("Déconnexion in MiseAJour");
+	    if (_estMisAssertion) 
+		System.out.println("Déconnexion in MiseAJour");
 	    while (true) {
 		try{Thread.sleep(_tmp * 60 * 1000);}
 		catch(InterruptedException ite){
@@ -66,17 +75,20 @@ public class MiseAJour extends Thread {
 		    System.out.println("Serveur not Found in MiseAJour");
 		    return ;
 		}
-		System.out.println("Connexion établie in MiseAJour");
+		if (_estMisAssertion) 
+		    System.out.println("Connexion établie in MiseAJour");
 		in   = socket.getInputStream();
 		out = socket.getOutputStream();
 		
 		out.write(("update " + listeFichiers).getBytes());
-		System.out.println(">> update " + listeFichiers);
+		if (_estMisAssertion) 
+		    System.out.println(">> update " + listeFichiers);
 		out.flush();
 		waitOk(in);
 		
 		out.close(); in.close(); socket.close();
-		System.out.println("Déconnexion in MiseAJour");
+		if (_estMisAssertion) 
+		    System.out.println("Déconnexion in MiseAJour");
 	    }
 	} catch (IOException ioe) {
 	    System.out.println("IOE exception in MiseAJour : " + ioe);
@@ -123,7 +135,8 @@ public class MiseAJour extends Thread {
 	    else
 		ret = (char) in.read();
 	}
-	System.out.println("<< ok");
+	if (_estMisAssertion) 
+	    System.out.println("<< ok");
     }
 }
 

@@ -13,7 +13,12 @@ import java.util.ArrayList;
 public class Main{
     public static void main(String[] args){
 	System.out.println("Essais");
-
+	boolean estMisAssertion = true;
+	assert estMisAssertion = false;
+	if (!estMisAssertion) {
+	    System.out.println("Execution impossible sans l'option -ea"); 
+	    return; 
+	}
 
 	char c = ' ', cr = ']';
 	System.out.println("un espace et un crochet:" + c + cr );

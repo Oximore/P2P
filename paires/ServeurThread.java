@@ -21,17 +21,21 @@ import java.io.CharConversionException;
 public class ServeurThread extends Thread {
     private Socket _socket;
     private Hashtable _hash;
-    
+    private boolean _estMisAssertion;
+
     public ServeurThread(String name, Socket s, Hashtable hash){
 	super(name);
 	_socket = s;
 	_hash = hash;
+	_estMisAssertion = false;
+	assert _estMisAssertion = true;
     }
     
     //throws java.io.IOException{
     public void run(){
 	try{
-	    System.out.println("Connexion au pair : " + _socket.getInetAddress() + "/" + _socket.getPort() );
+	    if (_estMisAssertion) 
+		System.out.println("Connexion au pair : " + _socket.getInetAddress() + " " + _socket.getPort() );
 	    InputStream in = _socket.getInputStream();    // read-close-skip
 	    OutputStream out = _socket.getOutputStream(); // write-close-flush
 	    
@@ -50,14 +54,14 @@ public class ServeurThread extends Thread {
 		// Si on a un espace on vérifie la conformité de l'expression
 		if (question.length()-1 == question.indexOf(" ", question.length()-1)){
 		    // Si le mot est reconnu
-		    System.out.println("1: "  + question.indexOf("interested"));
 		    if (0 == question.indexOf("interested") || 0 == question.indexOf("getpieces")){
 			key = lectureKey(in);
 			
 			if (0 == question.indexOf("interested")){
 			    // Protocole : "interested $key"
 			    // "have $key $buffermap" 
-			    System.out.println("<< " + question + key);
+			    if (_estMisAssertion) 
+				System.out.println("<< " + question + key);
 			    actionInterested(key, out);	    
 			}
 			
@@ -65,7 +69,8 @@ public class ServeurThread extends Thread {
 			    // Protocole : "getpieces $key [$index1 $index2 $index3]"
 			    // "data $key [$index1:$piece1 $index2:$piece2 $index3:$piece3]"
 			    pieces = lecturePieces(in);
-			    System.out.println("<< " + question + key + " " + pieces);
+			    if (_estMisAssertion) 
+				System.out.println("<< " + question + key + " " + pieces);
 			    try {
 				actionGetpiece (key, pieces, out);
 			    } catch(IOException e){
@@ -97,7 +102,6 @@ public class ServeurThread extends Thread {
 	byte[] b = {0};
 	int res;
 
-	System.out.println("10");
 	res = in.read();
 	// On lit un mot
 	while (res != -1){
@@ -134,7 +138,8 @@ public class ServeurThread extends Thread {
 	Object o = _hash.get(key);
 	if (o != null){
 	    Fichier f = (Fichier)o;
-	    System.out.println("On me demande mon fichier " + key);
+	    if (_estMisAssertion) 
+		System.out.println("On me demande mon fichier " + key);
 	    String reponse = "have " + key + " ";
 	    int i;
 	    boolean[] masque = f.getMasque();
@@ -145,7 +150,8 @@ public class ServeurThread extends Thread {
 		    reponse += "0";
 	    }
 	    reponse += " ";
-	    System.out.println(">> " + reponse);
+	    if (_estMisAssertion) 
+		System.out.println(">> " + reponse);
 	    out.write(reponse.getBytes());
 	    out.flush();
 	}
@@ -153,7 +159,7 @@ public class ServeurThread extends Thread {
 	    System.out.println("Clé inexistante ...");
     }
     
-
+    
     
     private void actionGetpiece (String key, String demande, OutputStream out) throws IOException {
 	// Passer directement le string
@@ -162,7 +168,8 @@ public class ServeurThread extends Thread {
 
 	if (o != null){
 	    Fichier f = (Fichier)o;
-	    System.out.println("On me demande des pièce de mon fichier " + key);
+	    if (_estMisAssertion) 
+		System.out.println("On me demande des pièce de mon fichier " + key);
 	    
 	    String[] index = ((String)demande.subSequence(demande.indexOf("[")+1,demande.indexOf("]"))).split(" ");
 	    String reponse = "data " + key + " [";
@@ -196,9 +203,11 @@ public class ServeurThread extends Thread {
 		}
 	    }
 	    
-	    System.out.println(reponsePartielle.length() +":'"+reponsePartielle +"'");
+	    if (_estMisAssertion) 
+		System.out.println(reponsePartielle.length() +":'"+reponsePartielle +"'");
 	    reponse += reponsePartielle.substring(0,reponsePartielle.length() -1) + "]";
-	    System.out.println(">> " + reponse);
+	    if (_estMisAssertion) 	    
+		System.out.println(">> " + reponse);
 	    out.write(reponse.getBytes());
 	    out.flush();
 	}

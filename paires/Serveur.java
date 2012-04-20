@@ -17,13 +17,17 @@ public class Serveur extends Thread {
     private Hashtable _hash;
     private FichierConfiguration _fichierConf;
     private int _localPort;
-    
+    private boolean _estMisAssertion;
+
     // @localPort : 0 pour ne pas choisir
     public Serveur(String name, Hashtable hash, FichierConfiguration fichierConf, int localPort) { 
 	super(name);
 	_hash = hash;
 	_fichierConf = fichierConf;
 	_localPort = localPort;
+	_estMisAssertion = false;
+	assert _estMisAssertion = true;
+	
     }
 
     
@@ -53,7 +57,8 @@ public class Serveur extends Thread {
     private int attendre(ServerSocket serv){
 	try{
 	    Socket s = serv.accept();
-	    System.out.println("Demande de connexion");
+	    if (_estMisAssertion)
+		System.out.println("Demande de connexion");
 	    // Lancement du Thread 5
 	    ServeurThread st = new ServeurThread("" + s.getPort(), s, _hash);
 	    st.start();
