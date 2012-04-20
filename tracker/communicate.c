@@ -6,6 +6,7 @@
 #include "interface.h"
 #include <string.h>
 #include <math.h>
+#include <sys/time.h>
 
 #define RECV_BUF_SIZE 4096
 #define SEND_BUF_SIZE 4096
@@ -36,7 +37,7 @@ int communicate(struct donnees* donnees)
   char* s6 = malloc(RECV_BUF_SIZE*sizeof(char));
   char* s0 = malloc(RECV_BUF_SIZE*sizeof(char));
   char* saux = malloc(RECV_BUF_SIZE*sizeof(char));
-  char** tab = malloc(7*sizeof(char *));;
+  char** tab = malloc(7*sizeof(char *));
   tab[0]=s0;
   tab[1]=s1;
   tab[2]=s2;
@@ -49,17 +50,52 @@ int communicate(struct donnees* donnees)
   int decalage;
   int length;
   int piece_size;
-
-
+  struct timeval *t = malloc(sizeof(struct timeval));
+  struct timeval *t2 = malloc(sizeof(struct timeval));
+  struct timezone *tz = malloc(sizeof(struct timezone));
+  struct timezone *tz2 = malloc(sizeof(struct timezone));
+  gettimeofday(t,tz);
   while(1)
-    {
-      
+    { 
       recv_buffer[0]='\0';
       send_buffer[0]='\0';
+      gettimeofday(t2,tz2);
+      if(( (int)(t2->tv_sec - t->tv_sec))>3*refresh_time)
+	{
+	  if(peer!=NULL)
+	    {
+	      peer->time--;
+	      if(!peer->time)
+		{
+		  peer_list_peer_delete(peer_list,file_list,peer->ip_address);
+		}
+	    }
+	  //free  
+	  free(s0);
+	  free(s1);
+	  free(s2);
+	  free(s3);
+	  free(s4);
+	  free(s5);
+	  free(s6);
+	  free(saux);
+	  free(recv_buffer);
+	  free(send_buffer);
+	  free(tab);
+	  free(t);
+	  free(t2);
+	  free(tz);
+	  free(tz2);
+	  end(client,donnees->ct);
+	  return 0;
+	}
       read=read_client(client->sock, recv_buffer);
       if(read > 0)
 	{
-	  print_data(file_list, peer_list);	  
+	  gettimeofday(t,tz);
+	  if(peer!=NULL)
+	    peer->time ++;
+	  //print_data(file_list, peer_list);	  
 	  printf("received:\n");
 	  switch(recv_buffer[0])
 	    {
@@ -74,7 +110,6 @@ int communicate(struct donnees* donnees)
 	      recv_buffer[decalage+read]='\0';
 	      printf("%s\n", recv_buffer);
 	      parse(recv_buffer, tab);
-	      //printf("parse ok\n");
 	      port = atoi(s2);
 	      if(strcmp(s0,"announce")==0 && strcmp(s1,"listen")==0 && strcmp(s3,"seed")==0 && strcmp(s5,"leech")==0)
 		{
@@ -83,14 +118,17 @@ int communicate(struct donnees* donnees)
 		    {
 		      peer = peer_init(ip, port);
 		      peer_list_add(peer_list, peer);
+		      peer->time=1;
 		    }
 		  int i=0;
+		  printf("coucou %s\n",s4+i);
 		  while(strlen(s4+i) > 0)
 		    {
 		      if(compte_espace(s4+i)>3)
 			{		 
 			  
 			  sscanf(s4+i, "%s %d %d %s", s1, &length, &piece_size, s2);
+			  printf("coucou %s\n",s4+i);
 			  
 			  sprintf(saux, "%s %d %d %s", s1, length, piece_size, s2);
 			  struct file* file = find_file(file_list, s1);
@@ -100,7 +138,7 @@ int communicate(struct donnees* donnees)
 			      file_list_add(file_list, file);
 			    }
 			  add_link(file, peer); 
-			  i=strlen(saux)+1;
+			  i+=strlen(saux)+1;
 			  
 			}
 		      else
@@ -116,14 +154,12 @@ int communicate(struct donnees* donnees)
 			  add_link(file, peer); 
 			  s4[i]='\0';			
 			}
-		      //si le fichier n'existe pas on le cree
 		    }
 		  struct file_list* f_add = keys_string_to_file_list(s6);
-		  //on suppose qu'il ne leech pas un fichier qu'il a declare avoir...
+		  
 		  update_add(file_list, peer, f_add);
 		  file_list_delete(f_add);
 		  write_client(client->sock, "ok");
-		  print_data(file_list, peer_list);
 		  printf("replied:ok\n");
 		  
 		}
@@ -142,12 +178,28 @@ int communicate(struct donnees* donnees)
 	      if(strcmp(s0,"update")==0 && strcmp(s1,"seed")==0 && strcmp(s3,"leech")==0)
 		{
 		  if(peer==NULL){
+		    //free  
+		    free(s0);
+		    free(s1);
+		    free(s2);
+		    free(s3);
+		    free(s4);
+		    free(s5);
+		    free(s6);
+		    free(saux);
+		    free(recv_buffer);
+		    free(send_buffer);
+		    free(tab);
+		    free(t);
+		    free(t2);
+		    free(tz);
+		    free(tz2);
 		    end(client, donnees->ct);
-		    //printf("le pair n'existe pas...\n");
+		    
 		    return 0;}//ferme la socket
 		  else
 		    { 
-		      //printf("le pair existe\n");
+		    
 		      char* res=fusion_keys_string(s2, s4);
 		      struct file_list* f = keys_string_to_file_list(res);
 		      update_diff(f, peer->file_list, file_list, peer);
@@ -238,6 +290,22 @@ int communicate(struct donnees* donnees)
 
 	    default:
 	      printf("entree non valide");
+	      //free  
+	      free(s0);
+	      free(s1);
+	      free(s2);
+	      free(s3);
+	      free(s4);
+	      free(s5);
+	      free(s6);
+	      free(saux);
+	      free(recv_buffer);
+	      free(send_buffer);
+	      free(tab);
+	      free(t);
+	      free(t2);
+	      free(tz);
+	      free(tz2);
 	      end(client,donnees->ct);
 	      return 0;
 	      
@@ -265,7 +333,9 @@ void end(struct client* client, struct client_tab* ct)
     close(client->sock);
     client_tab_delete_client(ct,client);
     pthread_mutex_unlock( &mutex);
-  }
+    printf("connection fermée\n");
+    
+}
 
 void update_diff(struct file_list* new, struct file_list* old, struct file_list* file_list, struct peer* peer)
 {
@@ -388,7 +458,7 @@ int compte_espace(char* buf)
 
 void parse(char* buf, char** tab)
 // remplit les char* du tableau tab à partir de buf 
-// buf doit finir par \0
+
 {
   int crochet_ouvert=0;
   int i=0;
@@ -414,7 +484,6 @@ void parse(char* buf, char** tab)
 	  tab[k][j]='\0';
 	  j=0;
 	  k++;
-	  //printf("s%d:%s\n", k-1, tab[k-1]);
 	}
       else
 	{
@@ -424,7 +493,7 @@ void parse(char* buf, char** tab)
        i++;
     }
   tab[k][j]='\0';
-  //printf("s%d:%s\n", k, tab[k]);
+
   while(k<6)
     { 
       k++;
