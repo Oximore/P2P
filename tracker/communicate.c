@@ -9,7 +9,7 @@
 
 #define RECV_BUF_SIZE 4096
 #define SEND_BUF_SIZE 4096
-
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 /*
 int main()
 {
@@ -28,14 +28,14 @@ int communicate(struct donnees* donnees)
   printf("refresh time:%d\n",refresh_time);
   char* recv_buffer= malloc(sizeof(char)*RECV_BUF_SIZE);
   char* send_buffer= malloc(sizeof(char)*SEND_BUF_SIZE);  
-  char* s1 = malloc(RECV_BUF_SIZE);
-  char* s2 = malloc(RECV_BUF_SIZE);
-  char* s3 = malloc(RECV_BUF_SIZE);
-  char* s4 = malloc(RECV_BUF_SIZE);
-  char* s5 = malloc(RECV_BUF_SIZE);
-  char* s6 = malloc(RECV_BUF_SIZE);
-  char* s0 = malloc(RECV_BUF_SIZE);
-  char* tab[7];
+  char* s1 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char* s2 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char* s3 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char* s4 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char* s5 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char* s6 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char* s0 = malloc(RECV_BUF_SIZE*sizeof(char));
+  char** tab = malloc(7*sizeof(char *));;
   tab[0]=s0;
   tab[1]=s1;
   tab[2]=s2;
@@ -52,15 +52,17 @@ int communicate(struct donnees* donnees)
 
   while(1)
     {
-      //print_data(file_list, peer_list);
+      
       recv_buffer[0]='\0';
       send_buffer[0]='\0';
       read=read_client(client->sock, recv_buffer);
       if(read > 0)
 	{
+	  print_data(file_list, peer_list);	  
 	  printf("received:\n");
 	  switch(recv_buffer[0])
 	    {
+	     pthread_mutex_lock(& mutex);
 	    case'a':
 	      decalage=0;
 	      while(compte_crochet_fermant(recv_buffer)<2)
@@ -71,9 +73,11 @@ int communicate(struct donnees* donnees)
 	      recv_buffer[decalage+read]='\0';
 	      printf("%s\n", recv_buffer);
 	      parse(recv_buffer, tab);
+	      //printf("parse ok\n");
 	      port = atoi(s2);
 	      if(strcmp(s0,"announce")==0 && strcmp(s1,"listen")==0 && strcmp(s3,"seed")==0 && strcmp(s5,"leech")==0)
 		{
+		  
 		  if(peer == NULL)
 		    {
 		      peer = peer_init(ip, port);
@@ -104,7 +108,7 @@ int communicate(struct donnees* donnees)
 		  update_add(file_list, peer, f_add);
 		  file_list_delete(f_add);
 		  write_client(client->sock, "ok");
-		  printf("replied\n");
+		  printf("replied:%s\n", send_buffer);
 		  
 		}
 	      break;
@@ -123,18 +127,18 @@ int communicate(struct donnees* donnees)
 		{
 		  if(peer==NULL){
 		    end(client, donnees->ct);
-		    printf("le pair n'existe pas...\n");
+		    //printf("le pair n'existe pas...\n");
 		    return 0;}//ferme la socket
 		  else
 		    { 
-		      printf("le pair existe\n");
+		      //printf("le pair existe\n");
 		      char* res=fusion_keys_string(s2, s4);
 		      struct file_list* f = keys_string_to_file_list(res);
 		      update_diff(f, peer->file_list, file_list, peer);
 		      file_list_delete(f);
 		      free(res);
 		      write_client(client->sock, "ok");
-		      printf("replied\n");
+		      printf("replied:%s\n", send_buffer);
 		  
 		    }	    
 		}
@@ -162,7 +166,7 @@ int communicate(struct donnees* donnees)
 		    }
 		  if(egal==1)
 		    {
-		      for(i=10;i<strlen(s1)-1;i++)
+		      for(i=10;i<((int) strlen(s1))-1;i++)
 			{
 			  s2[i-10]=s1[i];
 			}
@@ -175,20 +179,14 @@ int communicate(struct donnees* donnees)
 			{
 			  sprintf(send_buffer, "list [%s %d %d %s]", s2, file->length, file->p_size, file->key);
 			  write_client(client->sock, send_buffer);
-			  printf("replied");
+			  printf("replied:%s\n", send_buffer);
 			}
 		    }
 		}
 	      break;
 
 	    case'g':
-	      decalage=0;
-	      while(compte_crochet_fermant(recv_buffer)<1)
-		{
-		  decalage+=read;
-		  read=read_client(client->sock, recv_buffer + decalage);
-		}	  
-	      recv_buffer[decalage+read]='\0'; 
+	      recv_buffer[read]='\0'; 
 	      printf("%s\n", recv_buffer);	      
 	      parse(recv_buffer, tab);
 	      if(strcmp(s0,"getfile")==0)
@@ -202,16 +200,22 @@ int communicate(struct donnees* donnees)
 		  else
 		    {
 		      struct elt_peer* aux=f->peer_list->first;
-		      sprintf(send_buffer, "peers %s [%lu:%d", s1, aux->peer->ip_address, aux->peer->port);
+		      struct in_addr* in_addr1=malloc(sizeof(struct in_addr));
+		      in_addr1->s_addr=aux->peer->ip_address;
+		      char* d= inet_ntoa(*in_addr1);
+		      sprintf(send_buffer, "peers %s [%s:%d", s1, d, aux->peer->port);
 		      aux=aux->next;
 		      while(aux!=NULL)
 			{
-			  sprintf(send_buffer+strlen(send_buffer), " %lu:%d",  aux->peer->ip_address, aux->peer->port);
+			  struct in_addr* in_addr=malloc(sizeof(struct in_addr));
+			  in_addr->s_addr=aux->peer->ip_address;
+			  char* c= inet_ntoa(*in_addr);
+			  sprintf(send_buffer+strlen(send_buffer), " %s:%d", c, aux->peer->port);
 			  aux=aux->next;
 			}
 		      sprintf(send_buffer+strlen(send_buffer), "]");
 		      write_client(client->sock, send_buffer);
-		      printf("replied");
+		      printf("replied:%s\n", send_buffer);
 		    }
 		}
 	      break;
@@ -223,7 +227,7 @@ int communicate(struct donnees* donnees)
 	      
 	     
 	    }
-	  
+	  pthread_mutex_unlock( &mutex);
 	}
       
     }
@@ -244,6 +248,7 @@ void end(struct client* client, struct client_tab* ct)
   {
     close(client->sock);
     client_tab_delete_client(ct,client);
+    pthread_mutex_unlock( &mutex);
   }
 
 void update_diff(struct file_list* new, struct file_list* old, struct file_list* file_list, struct peer* peer)
@@ -333,8 +338,10 @@ struct file_list* keys_string_to_file_list(char* keys)
 
 struct file* remplit_file(char* filename, int length, int piece_size, char* key)
 {
-  char* new_filename = malloc(sizeof(filename));
-  char* new_key = malloc(sizeof(key));
+  char* new_filename = malloc((strlen(filename)+1)*sizeof(char));
+  char* new_key = malloc((strlen(key)+1)*sizeof(char));
+  strcpy(new_key, key);
+  strcpy(new_filename, filename);
   return file_init(new_key, new_filename, length, piece_size);
 }
 
@@ -364,7 +371,7 @@ int compte_espace(char* buf)
 }
 
 void parse(char* buf, char** tab)
-// remplit les char* du tableau tab à ârtir de buf 
+// remplit les char* du tableau tab à partir de buf 
 // buf doit finir par \0
 {
   int crochet_ouvert=0;
@@ -386,11 +393,12 @@ void parse(char* buf, char** tab)
 	    }
 	}
       else if(buf[i]=='[') crochet_ouvert=1;
-      else if(buf[i]==' ')
+      else if(buf[i]==' '||buf[i]=='\0')
 	{
 	  tab[k][j]='\0';
 	  j=0;
 	  k++;
+	  //printf("s%d:%s\n", k-1, tab[k-1]);
 	}
       else
 	{
@@ -400,6 +408,7 @@ void parse(char* buf, char** tab)
        i++;
     }
   tab[k][j]='\0';
+  printf("s%d:%s\n", k, tab[k]);
   while(k<6)
     { 
       k++;
