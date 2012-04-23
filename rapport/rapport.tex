@@ -1,38 +1,117 @@
-\documentclass[a4paper,11pt]{report}
-
+\documentclass[a4paper
+,oneside,11pt]{article}
 \usepackage[french]{babel}
 \usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{fullpage}
+\usepackage{xkeyval}
+\usepackage{rotating}
+\usepackage{amsmath}
+\usepackage{amsfonts,amssymb}
+\usepackage{float}
+\usepackage{fancyhdr}
 \usepackage{graphicx}
-\usepackage[colorlinks=true]{hyperref}
-\hypersetup{urlcolor=blue,linkcolor=black,citecolor=black,colorlinks=true} 
-%%%%%%%%%%%%%%%% Lengths %%%%%%%%%%%%%%%%
-\setlength{\textwidth}{15.5cm}
-\setlength{\evensidemargin}{0.5cm}
-\setlength{\oddsidemargin}{0.5cm}
+\usepackage{verbatim}
+\usepackage{lastpage}
+\usepackage{pstricks}
+%\usepackage{aeguill}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{mathenv}
+\usepackage{amssymb}
+\setlength{\headsep}{0.70cm}
 
 %%%%%%%%%%%%%%%% Variables %%%%%%%%%%%%%%%%
+\def\titre{Rapport\\Projet de Réseaux :\\Application Pair à Pair}
+\def\titregauche{Projet Réseaux}
+\def\titredroite{Rapport de projet}
+\def\filiere{informatique}
+\def\annee{$2^{eme}$}
+\def\anneescolaire{2011/2012}
+\def\equipe{Benjamin Lux \\ Guillaume Boutin \\ Thibaud Cheippe \\ Robin Delmas}
+\def\encadrant{medjiah}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{Projet Réseau : Application d'échange de fichiers Pair à Pair}
-\author{Thibaud Cheippe, Lux Benjamin, Boutin Guillaume}
 
+\pagestyle{fancy} \lhead{\textsc{\titregauche}} 
+\rfoot{\textit{Ann\'ee \anneescolaire}}\rhead{\textsc{\titredroite}}\cfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
 \begin{document}
-\maketitle
+
+\begin{titlepage}
+
+\begin{center}
 
 
+% Upper part of the page
+\begin{center}
+\rotatebox{0}{\scalebox{1}[1]{\includegraphics[width=5cm]{images/Logo_ENSEIRB-MATMECA.png}}}
+\end{center}
+~\\
+~\\
+~\\
+\textsc{\LARGE ENSEIRB-MATMECA}\\[1cm]
 
-%%%%%%%%%%%%%%%% Main part %%%%%%%%%%%%%%%%
-\chapter*{Introduction}
+\textsc{\Large {Fili\`ere \filiere, \annee ann\'ee}}\\[0.5cm]
 
-Ce projet a pour but de créer une application pair à pair. Pour cela, il faut diviser l'application en deux parties : la partie tracker et la partie pair.
-Les pair sont des utilisateurs qui possèdent des fichiers à partager et/ou qui désirent télécharger des fichiers détenus par d'autres pairs. Pour cela, ils doivent se connecter au tracker : ils renseignent ainsi les fichiers qu'ils possèdent et ceux qu'ils veulent. Le tracker répond aux requêtes de téléchargement en donnant la liste des pairs possédant le fichier désiré. Grâce à ces informations, le pair peut alors commencer le téléchargement.
-Le rôle du tracker est donc central, on parle d'application centralisée.
+% Title
+\HRule \\[0.4cm]
+{ \huge \bfseries \titre}\\[0.4cm]
 
-Dans ce projet, la partie paire est réalisée en Java alors que la partie tracker est réalisée en C.
-\chapter{Partie Pair} 
-\input{pair.tex}
 
-\chapter{Partie Tracker}
-\input{tracker.tex}
+\HRule \\[1.5cm]
+
+
+% Author and supervisor
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Auteurs:}\\
+\equipe
+\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Encadrant:} \\
+\encadrant
+\end{flushright}
+\end{minipage}
+
+
+\vfill
+
+% Bottom of the page
+{\large \today}
+
+\end{center}
+
+\end{titlepage}
+%\tableofcontents\thispagestyle{fancy}
+\newpage
+
+
+\section*{Introduction}\thispagestyle{fancy}
+\addcontentsline{toc}{section}{Introduction}
+\input{intro}
+
+
+\section{Tracker}
+\input{tracker}
+
+\section{Pair}
+\input{pair}
+
+
+\section*{Conclusion}\thispagestyle{fancy}
+\addcontentsline{toc}{section}{Conclusion}
+
+\input{conclusion}
+
+%\section{Glossaire}
+%\include{glossaire.tex}
 
 \end{document}
+

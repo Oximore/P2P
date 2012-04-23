@@ -1,0 +1,38 @@
+\documentclass[a4paper,11pt]{report}
+
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage[colorlinks=true]{hyperref}
+\hypersetup{urlcolor=blue,linkcolor=black,citecolor=black,colorlinks=true} 
+%%%%%%%%%%%%%%%% Lengths %%%%%%%%%%%%%%%%
+\setlength{\textwidth}{15.5cm}
+\setlength{\evensidemargin}{0.5cm}
+\setlength{\oddsidemargin}{0.5cm}
+
+%%%%%%%%%%%%%%%% Variables %%%%%%%%%%%%%%%%
+
+\title{Projet Réseau : Application d'échange de fichiers Pair à Pair}
+\author{Thibaud Cheippe, Lux Benjamin, Boutin Guillaume}
+
+
+\begin{document}
+\maketitle
+
+
+
+%%%%%%%%%%%%%%%% Main part %%%%%%%%%%%%%%%%
+\chapter*{Introduction}
+
+Ce projet a pour but de créer une application pair à pair. Pour cela, il faut diviser l'application en deux parties : la partie tracker et la partie pair.
+Les pair sont des utilisateurs qui possèdent des fichiers à partager et/ou qui désirent télécharger des fichiers détenus par d'autres pairs. Pour cela, ils doivent se connecter au tracker : ils renseignent ainsi les fichiers qu'ils possèdent et ceux qu'ils veulent. Le tracker répond aux requêtes de téléchargement en donnant la liste des pairs possédant le fichier désiré. Grâce à ces informations, le pair peut alors commencer le téléchargement.
+Le rôle du tracker est donc central, on parle d'application centralisée.
+
+Dans ce projet, la partie paire est réalisée en Java alors que la partie tracker est réalisée en C.
+\chapter{Partie Pair} 
+\input{pair_intermediaire}
+
+\chapter{Partie Tracker}
+\input{tracker_intermediaire}
+
+\end{document}
