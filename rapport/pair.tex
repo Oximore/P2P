@@ -1,26 +1,110 @@
 % pair.tex
 
+% une socket ou une sockette ?
+
+
 \subsection{Généralités sur le Pair}
+On dit souvent trop vite que la partie pair de ce projet joue le rôle
+de client. Or même si elle à effectivement ce rôle auprès du tracker
+ce n'est pas exactement le cas en général. En effet ce programme doit
+aussi bien jouer le rôle de client et de serveur. Nous allons ici
+détailler toutes les composantes de ce logiciel destiné à l'usage d'un
+utilisateur.
 
 \subsubsection{Implémentation Java, des classes objets}
+Il a semblé pertinent de choisir le langage Java pour le pair car ce
+dernier semble plus maléable et mieux réutilisable dans l'optique de
+faire la partie décentralisé du projet. Malheureusement nous n'avons
+pas eu le temps d'abordé cette partie du projet.
+
+L'implémentation Java permet l'utilisation de l'héritage de classe qui
+se révèle pratique lorsque deux parties différentes du programme
+utilisent les même mécanimes, les mêmes méthodes, mais ne sont pas
+dans la même formation logique. Nous avons par exemple crée une classe
+\textit{ToolsTelechargementThread} qui sera la classe mère de deux
+Threads s'occupant du téléchargement l'une utilisée par l'utilisateur,
+l'autre s'occupant de la reprise de téléchargement au démarage du
+pair.
 
 \subsubsection{Une architecture multi-thread}
+Le pair, de par sa nature, est un programme fortement
+multi-thread. Cette structure multi-thread est obligatoire lorsque
+l'on veux implémenter proprement un serveur, à chaque demande de
+connexion celui ci lancera un nouveau thread qui s'occupera de
+répondre tandis que celui ci pourra continuer d'écouter la socket
+serveur.
+
+L'utilisation de thread est dans d'autres cas moins obligatoire mais
+reste une manière élégante de gérer certains cas particulier. On peut
+penser notamment aux régulière mise à jour des données avec le
+serveur. Une manière basique de transmètre les données au serveur
+aurai de créer une variable contenant l'heure de la denrière mise à
+jour et de la comparer régulièrement à l'heure actuelle. Cependant un
+thread qui boucle avec un temps d'attente est il me semble beaucoups
+plus propre et logique.
+
+Nous avons même poussé le vice jusqu'à utiliser un thread pour la
+partie utilisateur humain, alors que celle ci pourrai juste être placé
+à la suite de l'initialisation de toutes nos structures de
+données. Cependant là encore il existe une séparation logique entre
+ces deux fonctionnalitée. Alors il nous a semblé plus pertinant
+d'avoir aussi cette séparation dans le code.
 
 \subsubsection{Structures de données}
 % table hashage // classe de stockages (Fichier / InfoPair)
+Pour pouvoir transmettre les informations utiles dans l'ensemble des
+threads nous avons crée des structures de données qui même si elles
+contienent un peu trop d'information pour un thread donné, limitent le
+passage d'argument et factorise le code.
+
+La plus importante de ces structures est sans aucun doute celle qui
+contient les informations sur chacun des fichiers proposé au
+téléchargement disponible sur notre machine. Ces informations sont
+contenues dans la classe \textit{Fichier}. On trouve dans cette classe
+des attributs privés contenant le nom du fichier, sa clé, sa taille,
+la taille de découpe des pièces de ce fichier et les parties de ce
+fichier que l'on possèdent (son masque de bit). Nous y retrouvons
+également des accéceurs pour lire ces variables ainsi que quelque uns
+pour définir leur valeurs. 
+
+Ces classes \textit{Fichier} sont elles mêmes contenues dans une table
+de hashage, instance de la classe native \textit{Hashtable} de Java.
+Cette structure correspond exactement à ce que l'on recherche puisque
+d'un part les temps de recherche sont court et d'une autre nous
+pouvons utilisé les clés des fichiers à bon escient.
+
+Il existe d'autres structures moins importantes comme
+\textit{InfoPair} quiest destinée à collecter les informations sur la
+liste des pairs obtenue par la requette \textit{look}.
+
+
 
 \subsubsection{Communication par socket}
 % communication courtes
+Le protocole de communication, fixé par le sujet, est TCP/IP. Pour y
+satisfaire, la partie pair utilise les classes \textit{ServeurSocket}
+et \textit{Socket} déjà implémenté en Java.
 
-
+Même si le coût d'établissement d'une socket n'est aps nul, nous avons
+fait le choix de privilégier les communication courtes. Ainsi après
+avoir effectuer un échange d'information (question/réponse)
+l'initiateur de la communication coupe la socket. Même si cela peut
+parraitre couteux nous en tirons deux avantages, d'une part nous
+n'avons pas besoin de stocker toutes les sockettes en cours
+d'utilisation d'autre part nous n'avons pas à nous soucier si après un
+message vient une partie de texte mal formé.
 
 
 \subsection{Cheminement du programme, structuration logique}
 
 \subsubsection{Programme d'initialisation}
+
 \subsubsection{Thread serveur}
+
 \subsubsection{Thread de Mise à jour}
+
 \subsubsection{Thread de réponse}
+
 \subsubsection{Thread utilisateur}
 % amélioration possible : plusieurs thread pour le dl
 
