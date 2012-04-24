@@ -77,6 +77,9 @@ Il existe d'autres structures moins importantes comme
 \textit{InfoPair} quiest destinée à collecter les informations sur la
 liste des pairs obtenue par la requette \textit{look}.
 
+%
+%  Et le FichierConfiguration dans tout ça ?
+%
 
 
 \subsubsection{Communication par socket}
@@ -96,17 +99,110 @@ message vient une partie de texte mal formé.
 
 
 \subsection{Cheminement du programme, structuration logique}
+Maintenant que nous avons survolé les principaux points de la
+technique d'implémentation, nous allons suivre le déroulement du
+programme dans ces actions.
 
 \subsubsection{Programme d'initialisation}
+L'utilisateur lance le programme grace à la commande shell $$java
+Pair$$ C'est donc sur la classe \textit{Pair} que nous allons nous
+pencher. Celle si commence par charger le fichier de configuration en
+instanciant un objet de la classe \textit{FichierConfiguration}. Celle
+ci ira ouvirir le fichier \textit{configuration.txt}, puis le
+parcourera afin de récupérer les valeurs inséré par l'utilisateur.
+
+Le paire va ensuite créer un objet \textit{HashTable} et parcourir
+tous les fichiers placés dans le dossier \textit{./Download}. Pour
+chaqu'un de ses fichiers, si il n'est pas un fichier caché la méthode
+\textit{sauver()} sera appelé. Celle ci instancira un objet
+\textit{Fichier} dans lequelles les informations du fichier seront
+stocké à partir, soit d'un fichier caché portant le même nom, soit en
+considérant que ce fichier vient d'être mit par l'utilisateur depuis
+le dernier lancement du programme. On supposera que dans le second cas
+le fichier est possédé en entier, on pourra donc mettre un buffermap
+entier. La clé de ce fichier sera calculée à partir de la méthode
+\textit{md5sum} de la classe \textit{FileHashSum}. Cette instance sera
+ensuite mise dans la table de hashage avec pour élément d'entré sa
+clé.
+
+La pair lance ensuite son serveur qui est une instance de la classe
+\textit{Serveur}. 
+
+Il execute ensuite la méthode \textit{run} de la classe
+\textit{ThreadUtilisateur}.  Cette méthode ne déclenche pas
+l'éxécution d'un thread mais seulement du code de celui ci. Ainsi nous
+ne créons pas de thread supplémentaire à ce niveau, mais comme dit
+précédement nous créons une coupure fonctionnelle.
+
+Le pair sauve enfin les données qui ont pu être modifier dans la table
+de hashage dans des fichiers cachés cité plus haut. Puis il termine.
 
 \subsubsection{Thread serveur}
+La classe \textit{Serveur} hérite de la classe native \textit{Thread}.
+Sa méthode \textit{run} consiste à créer un serveur en instanciant un
+objet de la classe \textit{ServeurSocket} grace à un port défini par
+l'utilisateur en paramètre du programme, ou si l'utilisateur n'a rien
+spécifier, un port aléatoire sur la machine.
+
+
+Un thread de la classe \textit{MiseAJour} est ensuite crée, puis lancé avec en
+argument le port précédement évoqué.
+
+Ce thread entrera ensuite dans une boucle infinie où il attendra une
+demande de connexion. Le cas échéant il créra un objet de la classe
+\textit{ServeurThread} qui sera chargé de répondre au client.
+
 
 \subsubsection{Thread de Mise à jour}
+Ce thread crée la liste des fichiers qu'il possède, entièrement ou en
+partie, puis se connecte au tracker pour se déclarer et lui indiquer
+quels sont ces fichiers grace au mot clé \textit{announce}.
+
+Il entre ensuite dans une boucle infinie dans laquelle il attends un
+certain temps (définit dans le fichier de configuration) puis se
+reconnecte au tracker et se met à jour avec le mot clé \textit{update}
+avant de se redéconnecter.
+
 
 \subsubsection{Thread de réponse}
+Ce thread appelé par le thread serveur répond aux demandes de
+connexion.
+
+Il commence d'abord par identifier le permier mot que l'on lui
+transmet. Si il correspond à un mot clé \textit{interested} ou
+\textit{getpiece} alors il lancera la fonction qui sera chargé de lire
+la suite du message et de répondre en conséquence. Dans le cas
+contraire il ignorera ce mot et continura d'écouter le canal entrant.
+
+Ce thread ne ferme jamais la socket, c'est au pair appelant de la
+coupé lorsqu'il n'aura plus rien à demander. Ainsi bien que l'on ne
+demandera jamais ici deux action dans la même socket, ce thread gère
+très bien ce cas (dans le cas de demandes bien formées).
+
 
 \subsubsection{Thread utilisateur}
 % amélioration possible : plusieurs thread pour le dl
+Ce thread hérite de la classe \textit{ToolsTelechargementThread} dans
+laquelle sont définies les méthodes de connexion à un serveur et les
+différentes méthodes parmétant d'envoyer une question à un serveur et
+de recevoir sa réponse.
+
+La méthode run de cette classe propose un menu à l'utilisateur dans
+lequel ce dernier peut choisir de rechercher un fichier suivant divèrs
+critères. Une fois les critères sélectionnés une demande \textit{look}
+est envoyé au tracker. 
+
+En fonction de la réponse du tracker une liste de fichiers répondant
+aux critères est afficher à l'utilisateur, lequel devra en choisir un
+ou annuler. Si l'un des fichiers est séléctionné une action
+\textit{getfile} est crée.
+
+
+Le threadutilisateur va ensuite demander à tous les pairs présents
+dans la réponse du tracker le buffermap du fichier demandé. Après un
+tri de ces buffermap plusieurs demande \textit{getpieces} seront
+envoyée et les bout de fichier reçut seront enregistré à l'emplacement
+correspondant du fichier convoité.
 
 \subsubsection{Reprise de téléchargement}
 
