@@ -1,13 +1,13 @@
 % tracker.tex
 
 \subsection{Structure de données}
-% en gros copier/coller du rapport intermediaire en chnageant les structures
+% en gros copier/coller du rapport intermediaire en changeant les structures
 
 \subsubsection{Structure File}
 Les fichiers possédés par les clients actuellement connectés sont stockés dans une structure file\_list (cette structure sera décrite plus tard). \\
 
 
-Les fichiers sont représentés par une structure File. Elle contient les champs suivants : 
+Les fichiers sont représentés par une structure file. Elle contient les champs suivants : 
 
 \begin{itemize}
 \item un pointeur sur une chaîne de caractères \textit{key}, qui sera l'identifiant du fichier
@@ -42,8 +42,9 @@ Chaque pair est représenté par une structure \textit{peer}, composée des cham
 \item \textit{ip\_address} représente l'adresse ip du pair
 \item \textit{port} représente le port du pair
 \item Le champ \textit{time} sert à savoir quand on peut décider qu'un pair est déconnecté (cette fonction sera décrite dans la partie connexions).
-\item \textit{file\_list} représente les fichiers possédés par le pair
+\item \textit{file\_list} représente les fichiers possédés par le pair.
 \end{itemize}
+A noter qu'un client représente une connexion au tracker, alors qu'un pair représente un utilisateur (défini par son adresse IP). Dès lors plusieurs clients peuvent correspondre à un unique pair, d'où la nécessité de deux structures distinctes.
 \begin{verbatim}
 struct peer
 {
@@ -84,7 +85,7 @@ struct elt_file
 \subsection{Connexions et Déconnexions}
 % socket timeout thread
 
-Pour communiquer avec les pairs, le tracker doit créer des sockets. On crée aussi des threads associés à ces sockets.
+Pour communiquer avec les pairs, le tracker doit créer des sockets. On crée aussi des threads associés à ces sockets, à raison d'un thread par socket.
 \subsubsection{Gestion des threads et des sockets}
 Pour stocker les threads et les sockets, on utilise une structure client et une structure client\_tab.
 
@@ -115,19 +116,46 @@ Le nouveau thread est lancé avec la fonction communicate.
 \subsubsection{Threads de communication avec les clients}
 Ce thread de communication sert à recevoir et envoyer des messages au client, et ce, au moyen de la fonction communicate. C'est à ce moment là que la base de donnée est mise à jour. On utilise des mutex pour éviter les conflits d'écriture et de lecture (entre les différents threads) dans la base de donnée.\\ 
 
-Comme dit plus haut, il est important de savoir qu'un même pair peut avoir plusieur socket ouvertes en même temps. A chaque nouvelle ouverture de socket (donc au début de la fonction communicate), on incrémente de 1 le champ time du pair associé. On sait donc en temps réel le nombre de socket qu'il utilise. Ainsi quand time atteint 0, le pair est supprimé de la base de donnée.\\ 
+Comme dit plus haut, il est important de savoir qu'un même pair peut avoir plusieur socket ouvertes en même temps. A chaque nouvelle ouverture de socket (donc au début de la fonction communicate), on incrémente de 1 le champ time du pair associé. On sait donc en temps réel le nombre de socket qu'il utilise. Ainsi quand time atteint 0 (chaque socket a atteint le time out), le pair est supprimé de la base de donnée.\\ 
 
-Par ailleurs, la fermeture d'une socket est gérée par un time-out. En effet, si le tracker ne reçoit pas de message pendant un durée déterminée (renseignée dans le fichier de configuration), la socket est fermée. On utilise pour cela la fonction gettimeofday().
+Par ailleurs, la fermeture d'une socket est gérée par un time-out. En effet, si le tracker ne reçoit pas de message pendant un durée déterminée (dépendant de la durée de rafraîchissement renseignée dans le fichier de configuration), le champ time du pair correspondant est décrémenté et la socket est fermée. On utilise pour cela la fonction gettimeofday(). La durée de timeout choisie est trois fois celle de rafraîchissement en temps normal.
 
 \subsubsection{Fichier de configuration}
 Le fichier de configuration est très simple, il se nomme config.txt et a le format suivant :
 \begin{verbatim}
-<Numéro de port du tracker> <temps en seconde correspondant au time-out>
+<Numéro de port du tracker> <temps en seconde correspondant au temps entre deux update (rafraîchissement)>
 \end{verbatim}
 
 
-\subsection{Gestion des messages}
+\subsection{Communication avec le client}
 % mais bon y aura pas forcément beaucoup à dire, c'est du parsing...
+\subsubsection{La fonction communicate}
+
+Lors de la connexion au tracker d'un pair, nous créons une nouvelle socket, un client, et un thread. Le thread est lancé sur la fonction communicate, qui gèrera la communication avec le client. La fonction communicate prend donc en paramètre une struct donnees contenant toutes les informations sur la structure de donnees ainsi qu'un pointeur vers le client associé à cette socket.
+
+\subsubsection{Time out et déconnexion}
+La fonction commence par enregistrer la date de lancement à l'aide d'un gettimeofday, puis elle rentre dans une boucle infinie (boucle d'attent du client). Dans cette boucle, elle mesure la date actuelle et la compare à la date de lancement : si la socket a dépassé le time out la socket est fermée (fonction end) et si le champ time du pair vaut 0 le struct peer est supprimé, puis elle récupère les données reçues par la socket (dans notre cas la réception d'information est non-bloquante). Si la taille de ces données est strictement positive, la fonction réactualise le date de lancement, verrouille l'accès à la structure de donées à l'aide d'un mutex, et procède à une disjonction de cas en fonction de la chaîne de caractères reçue (analyse des messages et action en conséquence, cf le paragraphe suivant, puis déverrouillage du mutex pour un autre tour de boucle). Cette boucle se répète indéfiniment jusqu'à la destruction du thread.\\
+
+Pour fermer la connexion au client à la suite d'un time out, on utilise la fonction end. Cette fonction ferme la socket si ce n'est déjà fait par le client, supprime le struct client associé à cette socket, et déverrouille le mutex pour laisser aux autres threads l'accès libre en lecture/écriture. L'appel à la fonction end est toujours suivi d'un return 0, ainsi la fonction comunicate a une valeur de retour, ce qui détruit le thread sur lequel elle a été lancée.
+
+\subsubsection{Gestion des messages}
+
+A la suite d'une réception de données, la première chose à faire est de vérifier que le message reçu est entier. Pour cela nous comptons le nombre de crochets fermant contenus dans le buffer de réception, et si ce nombre est celui attendu pour un message commençant par la première lettre du buffer de réception, le message est bien arrivé en entier. Par exemple si la première lettre reçue est un 'a', le seul message possible respectant le protocole est un update, qui atted 2 crochets fermant. Tant que le nombre de crochets n'est pas celui attendu, on copie le texte reçu à la suite du buffer de réception et on attend laa suite du message.\\
+
+Une fois que le message est arrivé en entier, on compare lettre à lettre avec le prototype de message attendu, et on stocke les différents champs. Si le message respecte le protocole, on agit en conséquence.\\
+
+Pour un message announce, on vérifie d'abord s'il existe un peer ayant la même adresse IP que le client. Si ce n'est pas le cas on le crée. Puis pour chaque fichier que le client seed, on vérifie s'il existe un fichier ayant cette clé. Si ce n'est pas le cas on crée un struct file grâce aux données fournies. Puis on lie pair et fichier (fonction add\_link) : on ajoute le pair à la liste de ceux possédant le fichier, et on ajoute ce fichier à la liste de ceux possédés par le pair (cf symétrie de la structure de données). Pour les fichiers qu'il leech, on se contente de lier pair et fichier si le fichier existe. Puis il répond ok.\\
+
+Pour un message update, la procédure est presque la même : pour chaque fichier leeché ou seedé on lie/délie le pair est le fichier à ajouter/supprimer. A noter que par souci d'optimisation, nous ne supprimons pas tous les liens associés au pair avant d'en recréer vers les fichiers déclarés dans le update, mais comparons les nouveaux et les anciens fichiers possédés par le pair, afin de ne supprimer que ceux n'étant pas appelés à être recréés (et de ne pas le relier à des fichiés auxquels il est déjà lié). Puis il répond ok.\\
+
+La réception d'un message look est suivie d'une simple consultation de la structure de données (nous ne gérons pour l'instant que la recherche par nom de fichier).
+Puis il renvoie au pair un fichier correspondant à la recherche ou une liste vide si aucun ne correspond. De même un message getfile sera suivi d'une recherche par clé dans la structure de données, et de l'envoi d'une liste de pairs possédant ce fichier.
 
 % je sais pas trop où caser la phrase disant qu'on a fait des mutex, peut-être avec les threads dans CO/DECO
 % ok j'en parle un peu dans co deco je parle aussi de l'utilisation du champ time
+
+
+%struct donnees
+%\textit
+%complexité  : recherche linéaire, acces temps constant
+% conclu ?
