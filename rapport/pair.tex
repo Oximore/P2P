@@ -38,10 +38,10 @@ L'utilisation de thread est dans d'autres cas moins obligatoire mais
 reste une manière élégante de gérer certains cas particulier. On peut
 penser notamment aux régulières mise à jour des données avec le
 serveur. Une manière basique de transmettre les données au serveur
-aurait été de créer une variable contenant l'heure de la dernière mise à
-jour et de la comparer régulièrement à l'heure actuelle. Cependant un
-thread qui boucle avec un temps d'attente est, il me semble, beaucoup
-plus propre et logique.
+aurait été de créer une variable contenant l'heure de la dernière
+mise-à-jour et de la comparer régulièrement à l'heure
+actuelle. Cependant un thread qui boucle avec un temps d'attente est,
+il me semble, beaucoup plus propre et logique.
 
 Nous avons même poussé le vice jusqu'à utiliser un thread pour la
 partie utilisateur humain, alors que celle-ci pourrait juste être placée
@@ -54,8 +54,8 @@ d'avoir aussi cette séparation dans le code.
 % table hashage // classe de stockages (Fichier / InfoPair)
 Pour pouvoir transmettre les informations utiles dans l'ensemble des
 threads nous avons créé des structures de données qui même si elles
-contiennent un peu trop d'information pour un thread donné, limitent le
-passage d'argument et factorise le code.
+contiennent un peu trop d'informations pour un thread donné, limitent le
+passage d'argument et factorisent le code.
 
 La plus importante de ces structures est sans aucun doute celle qui
 contient les informations sur chacun des fichiers proposés au
@@ -64,13 +64,13 @@ contenues dans la classe \textit{Fichier}. On trouve dans cette classe
 des attributs privés contenant le nom du fichier, sa clé, sa taille,
 la taille de découpe des pièces de ce fichier et les parties de ce
 fichier que l'on possède (son masque de bit). Nous y retrouvons
-également des accéceurs pour lire ces variables ainsi que quelque uns
-pour définir leur valeurs. 
+également des accesseurs pour lire ces variables ainsi que quelques-uns
+pour définir leur valeur. 
 
 Ces classes \textit{Fichier} sont elles-mêmes contenues dans une table
 de hashage, instance de la classe native \textit{Hashtable} de Java.
 Cette structure correspond exactement à ce que l'on recherche puisque
-d'une part les temps de recherche sont court et d'une autre nous
+d'une part les temps de recherche sont courts et d'une autre nous
 pouvons utiliser les clés des fichiers à bon escient.
 
 Il existe d'autres structures moins importantes comme
