@@ -140,16 +140,16 @@ Pour fermer la connexion au client à la suite d'un time out, on utilise la fonc
 
 \subsubsection{Gestion des messages}
 
-A la suite d'une réception de données, la première chose à faire est de vérifier que le message reçu est entier. Pour cela nous comptons le nombre de crochets fermant contenus dans le buffer de réception, et si ce nombre est celui attendu pour un message commençant par la première lettre du buffer de réception, le message est bien arrivé en entier. Par exemple si la première lettre reçue est un 'a', le seul message possible respectant le protocole est un update, qui atted 2 crochets fermant. Tant que le nombre de crochets n'est pas celui attendu, on copie le texte reçu à la suite du buffer de réception et on attend laa suite du message.\\
+A la suite d'une réception de données, la première chose à faire est de vérifier que le message reçu est entier. Pour cela nous comptons le nombre de crochets fermant contenus dans le buffer de réception, et si ce nombre est celui attendu pour un message commençant par la première lettre du buffer de réception, le message est bien arrivé en entier. Par exemple si la première lettre reçue est un 'a', le seul message possible respectant le protocole est un announce, qui atted 2 crochets fermant. Tant que le nombre de crochets n'est pas celui attendu, on copie le texte reçu à la suite du buffer de réception et on attend la suite du message.\\
 
 Une fois que le message est arrivé en entier, on compare lettre à lettre avec le prototype de message attendu, et on stocke les différents champs. Si le message respecte le protocole, on agit en conséquence.\\
 
-Pour un message announce, on vérifie d'abord s'il existe un peer ayant la même adresse IP que le client. Si ce n'est pas le cas on le crée. Puis pour chaque fichier que le client seed, on vérifie s'il existe un fichier ayant cette clé. Si ce n'est pas le cas on crée un struct file grâce aux données fournies. Puis on lie pair et fichier (fonction add\_link) : on ajoute le pair à la liste de ceux possédant le fichier, et on ajoute ce fichier à la liste de ceux possédés par le pair (cf symétrie de la structure de données). Pour les fichiers qu'il leech, on se contente de lier pair et fichier si le fichier existe. Puis il répond ok.\\
+Pour un message announce, on vérifie d'abord s'il existe un peer ayant la même adresse IP que le client. Si ce n'est pas le cas on le crée. Puis pour chaque fichier que le client seed, on vérifie s'il existe un fichier ayant cette clé. Si ce n'est pas le cas on crée un struct file grâce aux données fournies. Puis on lie pair et fichier (fonction add\_link) : on ajoute le pair à la liste de ceux possédant le fichier, et on ajoute ce fichier à la liste de ceux possédés par le pair (cf symétrie de la structure de données). Pour les fichiers qu'il leech, on se contente de lier pair et fichier si le fichier existe. Puis on répond ok.\\
 
-Pour un message update, la procédure est presque la même : pour chaque fichier leeché ou seedé on lie/délie le pair est le fichier à ajouter/supprimer. A noter que par souci d'optimisation, nous ne supprimons pas tous les liens associés au pair avant d'en recréer vers les fichiers déclarés dans le update, mais comparons les nouveaux et les anciens fichiers possédés par le pair, afin de ne supprimer que ceux n'étant pas appelés à être recréés (et de ne pas le relier à des fichiés auxquels il est déjà lié). Puis il répond ok.\\
+Pour un message update, la procédure est presque la même : pour chaque fichier leeché ou seedé on lie/délie le pair est le fichier à ajouter/supprimer. A noter que par souci d'optimisation, nous ne supprimons pas tous les liens associés au pair avant d'en recréer vers les fichiers déclarés dans le update, mais comparons les nouveaux et les anciens fichiers possédés par le pair, afin de ne supprimer que ceux n'étant pas appelés à être recréés (et de ne pas le relier à des fichiers auxquels il est déjà lié). Puis on répond ok.\\
 
 La réception d'un message look est suivie d'une simple consultation de la structure de données (nous ne gérons pour l'instant que la recherche par nom de fichier).
-Puis il renvoie au pair un fichier correspondant à la recherche ou une liste vide si aucun ne correspond. De même un message getfile sera suivi d'une recherche par clé dans la structure de données, et de l'envoi d'une liste de pairs possédant ce fichier.
+Puis on renvoie au pair des informations sur un fichier correspondant à la recherche ou une liste vide si aucun ne correspond. De même un message getfile sera suivi d'une recherche par clé dans la structure de données, et de l'envoi d'une liste de pairs possédant ce fichier.
 
 % je sais pas trop où caser la phrase disant qu'on a fait des mutex, peut-être avec les threads dans CO/DECO
 % ok j'en parle un peu dans co deco je parle aussi de l'utilisation du champ time
@@ -157,5 +157,5 @@ Puis il renvoie au pair un fichier correspondant à la recherche ou une liste vi
 
 %struct donnees
 %\textit
-%complexité  : recherche linéaire, acces temps constant
+%complexité : recherche linéaire, acces temps constant
 % conclu ?
