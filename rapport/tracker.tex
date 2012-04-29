@@ -2,9 +2,132 @@
 
 \subsection{Structure de données}
 % en gros copier/coller du rapport intermediaire en chnageant les structures
+
+\subsubsection{Structure File}
+Les fichiers possédés par les clients actuellement connectés sont stockés dans une structure file\_list (cette structure sera décrite plus tard). \\
+
+
+Les fichiers sont représentés par une structure File. Elle contient les champs suivants : 
+
+\begin{itemize}
+\item un pointeur sur une chaîne de caractères \textit{key}, qui sera l'identifiant du fichier
+\item le champ \textit{name} qui contiendra le nom du fichier
+\item le champ \textit{length} qui contiendra la taille du fichier
+\item le champ \textit{p\_size} qui contiendra la taille des paquets
+\item Le champ \textit{peer\_list} pointe sur un objet de type \textit{struct peer\_list}, qui est une liste chaînée de \textit{struct peer}. La structure \textit{struct peer} étant la structure que nous avons choisie pour stocker les différents utilisateurs connectés, \textit{peer\_list} représente la liste de pairs connectés possédant ce fichier.
+\end{itemize}
+ 
+\begin{verbatim}
+
+struct file
+{
+  char * key;
+  char * name;
+  int length;
+  int p_size;
+  struct peer_list * peer_list; 
+};
+
+struct file_list
+{
+  struct elt_file * first;
+};
+
+\end{verbatim}
+La file\_list pourra comporter plusieurs fichiers de même nom \textit{name} et même longueur \textit{length}, mais une clé sera unique dans la base de données.
+\subsubsection{structure Peer}
+  
+Chaque pair est représenté par une structure \textit{peer}, composée des champs suivants :
+\begin{itemize}
+\item \textit{ip\_address} représente l'adresse ip du pair
+\item \textit{port} représente le port du pair
+\item Le champ \textit{time} sert à savoir quand on peut décider qu'un pair est déconnecté (cette fonction sera décrite dans la partie connexions).
+\item \textit{file\_list} représente les fichiers possédés par le pair
+\end{itemize}
+\begin{verbatim}
+struct peer
+{
+  unsigned long ip_address;
+  int port;
+  int time;
+  struct file_list * file_list;
+};
+
+struct peer_list
+{
+  struct elt_peer * first;
+};
+\end{verbatim}
+
+
+\subsubsection{structures elt\_file et elt\_peer}
+
+Ces deux constructions peer\_list et file\_list sont en fait symétriques: un élément d'une des deux listes possède un champ du type de l'autre liste, ce qui permet d'accéder facilement à la liste des fichiers possédés par un pair, ainsi qu'à la liste des pairs possédant un certain fichier.
+
+De plus, il n'y a pas de redondance dans la structure de données car on stocke directement les pointeurs (on ne fait pas de copie de structures).\\ 
+Cependant, comme nous utilisons les pointeurs vers les mêmes structures (aussi bien peer que file) pour ajouter dans des listes différentes, on ne peut pas les chaîner directement. C'est à dire qu'on ne peut pas ajouter un champ struct file/peer * next dans ces structures. On doit en fait les "encapsuler" dans une structure elt\_file/elt\_peer pour assurer le chaînage.
+\begin{verbatim}
+struct elt_peer
+{
+  struct elt_peer * next;
+  struct peer * peer;
+};
+
+struct elt_file
+{
+  struct elt_file * next;
+  struct file * file;
+};
+\end{verbatim}
+
+
 \subsection{Connexions et Déconnexions}
 % socket timeout thread
+
+Pour communiquer avec les pairs, le tracker doit créer des sockets. On crée aussi des threads associés à ces sockets.
+\subsubsection{Gestion des threads et des sockets}
+Pour stocker les threads et les sockets, on utilise une structure client et une structure client\_tab.
+
+La structure client contient donc le file descriptor et la structure de la socket, ainsi que le thread associé :
+\begin{verbatim}
+struct client
+{
+  int sock;
+  struct sockaddr_in *sockaddr;
+  pthread_t *t; 
+};
+\end{verbatim}
+On organise ensuite ces structures dans client\_tab :
+\begin{verbatim}
+
+struct client_tab
+{
+  struct client tab[MAX];
+  int b[MAX];
+};
+\end{verbatim}
+On utilise un tableau de longueur prédéfinie ainsi qu'un tableau de booléens de même taille. Ce tableau de booléens nous informe si les clients sont actifs ou déconnectés.
+Nous avons choisi d'utiliser des tableaux car ils permettent de facilement limiter le nombre de connections au tracker ( pour qu'il ne soit pas surchargé ). Il est important de noter qu'un pair peut ouvrir plusieurs sockets à la suite (et donc créer plusieur structures client). Il peut par exemple ouvrir une première socket, envoyer un message, fermer la connection, puis en ouvrir une autre... Ce type de comportement est géré et ne pose pas de problèmes lors de la communication avec ce pair.
+
+\subsubsection{Thread d'écoute}
+La socket d'écoute, créée sur le premier thread, sert à attendre les connections de nouveaux pairs (il est en attente bloquante). Cette socket est créée avec le port renseigné dans le fichier de configuration. Dès qu'un pair demande une connection, ce premier thread crée une nouvelle socket et un nouveau thread spécifique à ce pair.
+Le nouveau thread est lancé avec la fonction communicate.
+\subsubsection{Threads de communication avec les clients}
+Ce thread de communication sert à recevoir et envoyer des messages au client, et ce, au moyen de la fonction communicate. C'est à ce moment là que la base de donnée est mise à jour. On utilise des mutex pour éviter les conflits d'écriture et de lecture (entre les différents threads) dans la base de donnée.\\ 
+
+Comme dit plus haut, il est important de savoir qu'un même pair peut avoir plusieur socket ouvertes en même temps. A chaque nouvelle ouverture de socket (donc au début de la fonction communicate), on incrémente de 1 le champ time du pair associé. On sait donc en temps réel le nombre de socket qu'il utilise. Ainsi quand time atteint 0, le pair est supprimé de la base de donnée.\\ 
+
+Par ailleurs, la fermeture d'une socket est gérée par un time-out. En effet, si le tracker ne reçoit pas de message pendant un durée déterminée (renseignée dans le fichier de configuration), la socket est fermée. On utilise pour cela la fonction gettimeofday().
+
+\subsubsection{Fichier de configuration}
+Le fichier de configuration est très simple, il se nomme config.txt et a le format suivant :
+\begin{verbatim}
+<Numéro de port du tracker> <temps en seconde correspondant au time-out>
+\end{verbatim}
+
+
 \subsection{Gestion des messages}
 % mais bon y aura pas forcément beaucoup à dire, c'est du parsing...
 
 % je sais pas trop où caser la phrase disant qu'on a fait des mutex, peut-être avec les threads dans CO/DECO
+% ok j'en parle un peu dans co deco je parle aussi de l'utilisation du champ time
